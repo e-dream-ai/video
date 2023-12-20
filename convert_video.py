@@ -6,7 +6,7 @@ def get_hardware_acceleration_codec():
     os_name = platform.system()
 
     if os_name == "Windows":
-        return "h264_nvenc"  # NVIDIA NVENC for Windows
+        return "libx264"  # software encoder for windows
     elif os_name == "Darwin":
         return "h264_videotoolbox"  # VideoToolbox for macOS
     elif os_name == "Linux":
@@ -23,6 +23,7 @@ def convert_video(input_file, output_file):
         '-y', '-vsync', '0',
         '-i', input_file,
         '-an',
+        '-t', '600',
         '-c:v', hardware_acceleration_codec,
         '-b:v', '5M',
         output_file
