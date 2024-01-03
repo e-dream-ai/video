@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import platform
+from pathlib import Path
 
 def get_hardware_acceleration_codec():
     os_name = platform.system()
@@ -32,6 +33,21 @@ def convert_video(input_file, output_file):
     try:
         subprocess.call(cmd)
         print('Success: {} converted to {}'.format(input_file, output_file))
+    except subprocess.CalledProcessError as e:
+        print('Error: FFmpeg returned a non-zero exit code ({})'.format(e.returncode))
+        sys.exit(1)
+
+    output_file_png = Path(output_file).stem + '.png'
+    cmd = [
+        'ffmpeg',
+        '-i', input_file,
+        '-vframes', '1',
+        output_file_png
+    ]
+
+    try:
+        subprocess.call(cmd)
+        print('Success: {} extracted {}'.format(input_file, output_file_png))
     except subprocess.CalledProcessError as e:
         print('Error: FFmpeg returned a non-zero exit code ({})'.format(e.returncode))
         sys.exit(1)
