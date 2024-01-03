@@ -21,12 +21,14 @@ def convert_video(input_file, output_file):
 
     cmd = [
         'ffmpeg',
-        '-y', '-vsync', '0',
         '-i', input_file,
         '-an',
         '-t', '600',
+        '-s', '1920x1080',
         '-c:v', hardware_acceleration_codec,
         '-b:v', '5M',
+        '-fps_mode', 'passthrough',
+        '-y',
         output_file
     ]
 
@@ -42,6 +44,7 @@ def convert_video(input_file, output_file):
         'ffmpeg',
         '-i', input_file,
         '-vframes', '1',
+        '-y',
         output_file_png
     ]
 
