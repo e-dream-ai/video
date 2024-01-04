@@ -1,6 +1,6 @@
 import os
 import ffmpeg
-from flask import Flask
+from flask import Flask, send_file
 from dotenv import load_dotenv
 from flask import jsonify
 
@@ -18,3 +18,11 @@ def index():
         "dummy2.mp4"
     ).run(overwrite_output=True)
     return jsonify(sucess=True, status=200, message="Hello world!")
+
+
+@app.route("/hflip")
+def hflip():
+    ffmpeg.input("dummy.mp4").hflip().filter("fps", fps=25, round="up").output(
+        "dummy2.mp4"
+    ).run(overwrite_output=True)
+    return send_file("./dummy2.mp4")
