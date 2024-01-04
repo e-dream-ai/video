@@ -1,0 +1,8 @@
+# dummy file
+dummy2.mp4
+
+# env variables
+.env
+
+# python
+__pycache__
