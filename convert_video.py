@@ -25,8 +25,8 @@ def convert_video(input_file, output_file):
         '-an',
         '-t', '600',
         '-s', '1920x1080',
-        '-c:v', hardware_acceleration_codec,
-        '-b:v', '5M',
+        '-c:v', 'libx264',
+        '-crf', '20',
         '-fps_mode', 'passthrough',
         '-y',
         output_file
