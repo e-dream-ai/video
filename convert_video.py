@@ -3,6 +3,7 @@ import sys
 import platform
 from pathlib import Path
 
+
 def get_hardware_acceleration_codec():
     os_name = platform.system()
 
@@ -16,44 +17,45 @@ def get_hardware_acceleration_codec():
         print("Unsupported operating system: {}".format(os_name))
         sys.exit(1)
 
+
 def convert_video(input_file, output_file):
-    hardware_acceleration_codec = get_hardware_acceleration_codec()
-
     cmd = [
-        'ffmpeg',
-        '-i', input_file,
-        '-an',
-        '-t', '600',
-        '-s', '1920x1080',
-        '-c:v', 'libx264',
-        '-crf', '20',
-        '-fps_mode', 'passthrough',
-        '-y',
-        output_file
+        "ffmpeg",
+        "-i",
+        input_file,
+        "-an",
+        "-t",
+        "600",
+        "-s",
+        "1920x1080",
+        "-c:v",
+        "libx264",
+        "-crf",
+        "20",
+        "-fps_mode",
+        "passthrough",
+        "-y",
+        output_file,
     ]
 
     try:
         subprocess.call(cmd)
-        print('Success: {} converted to {}'.format(input_file, output_file))
+        print("Success: {} converted to {}".format(input_file, output_file))
     except subprocess.CalledProcessError as e:
-        print('Error: FFmpeg returned a non-zero exit code ({})'.format(e.returncode))
+        print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
         sys.exit(1)
 
-    output_file_png = Path(output_file).stem + '.png'
-    cmd = [
-        'ffmpeg',
-        '-i', input_file,
-        '-vframes', '1',
-        '-y',
-        output_file_png
-    ]
+
+def generate_thumbnail(input_file, output_file):
+    cmd = ["ffmpeg", "-i", input_file, "-vframes", "1", "-y", output_file]
 
     try:
         subprocess.call(cmd)
-        print('Success: {} extracted {}'.format(input_file, output_file_png))
+        print("Success: {} extracted {}".format(input_file, output_file))
     except subprocess.CalledProcessError as e:
-        print('Error: FFmpeg returned a non-zero exit code ({})'.format(e.returncode))
+        print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
         sys.exit(1)
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:

@@ -1,6 +1,8 @@
 import os
 import ffmpeg
-from flask import Flask, send_file
+from s3 import download_file, upload_file
+from convert_video import convert_video, generate_thumbnail
+from flask import Flask
 from dotenv import load_dotenv
 from flask import jsonify
 
@@ -12,17 +14,32 @@ env_config = os.getenv("APP_SETTINGS", "config.DevelopmentConfig")
 app.config.from_object(env_config)
 
 
-@app.route("/")
+@app.route("/convert_video")
 def index():
-    ffmpeg.input("dummy.mp4").hflip().filter("fps", fps=25, round="up").output(
-        "dummy2.mp4"
-    ).run(overwrite_output=True)
-    return jsonify(sucess=True, status=200, message="Hello world!")
+    dream_uuid = "177d577d-99f8-4125-9584-0656eb6b7f5f"
+    user_uuid = "0cfcfb03-cab5-490a-b7cf-3ab8bfd4f51c"
+    is_dream_downloaded = download_file(
+        file_name="./assets/{}.mp4".format(dream_uuid),
+        object_name="{}/{}/{}.mp4".format(user_uuid, dream_uuid, dream_uuid),
+    )
 
+    if not is_dream_downloaded:
+        return jsonify(sucess=False, status=404, message="Dream not found")
+    convert_video(
+        input_file="./assets/{}.mp4".format(dream_uuid),
+        output_file="./assets/{}_output.mp4".format(dream_uuid),
+    )
+    generate_thumbnail(
+        input_file="./assets/{}.mp4".format(dream_uuid),
+        output_file="./assets/{}.png".format(dream_uuid),
+    )
+    upload_file(
+        file_name="./assets/{}.mp4".format(dream_uuid),
+        object_name="{}/{}/{}_converted.mp4".format(user_uuid, dream_uuid, dream_uuid),
+    )
+    upload_file(
+        file_name="./assets/{}.png".format(dream_uuid),
+        object_name="{}/{}/{}.png".format(user_uuid, dream_uuid, dream_uuid),
+    )
 
-@app.route("/hflip")
-def hflip():
-    ffmpeg.input("dummy.mp4").hflip().filter("fps", fps=25, round="up").output(
-        "dummy2.mp4"
-    ).run(overwrite_output=True)
-    return send_file("./dummy2.mp4")
+    return jsonify(sucess=True, status=200, message="Video successfully converted")

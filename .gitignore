@@ -1,5 +1,7 @@
 # dummy file
 dummy2.mp4
+assets/*.png
+assets/*.mp4
 
 # env variables
 .env
