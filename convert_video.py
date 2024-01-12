@@ -43,7 +43,6 @@ def convert_video(input_file, output_file):
         print("Success: {} converted to {}".format(input_file, output_file))
     except subprocess.CalledProcessError as e:
         print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
-        sys.exit(1)
 
 
 def generate_thumbnail(input_file, output_file):
@@ -54,7 +53,6 @@ def generate_thumbnail(input_file, output_file):
         print("Success: {} extracted {}".format(input_file, output_file))
     except subprocess.CalledProcessError as e:
         print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
-        sys.exit(1)
 
 
 if __name__ == "__main__":

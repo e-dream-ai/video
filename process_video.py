@@ -4,8 +4,6 @@ from convert_video import convert_video, generate_thumbnail
 
 
 def process_video(user_uuid, dream_uuid):
-    print(f"processing user_uuid: {user_uuid}")
-    print(f"processing dream_uuid: {dream_uuid}")
     download_file(
         file_name="./assets/{}.mp4".format(dream_uuid),
         object_name="{}/{}/{}.mp4".format(user_uuid, dream_uuid, dream_uuid),
