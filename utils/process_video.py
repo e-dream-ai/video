@@ -36,6 +36,8 @@ def process_video(user_uuid, dream_uuid):
 def run_process_video(data):
     user_uuid = data["user_uuid"]
     dream_uuid = data["dream_uuid"]
+    print(user_uuid)
+    print(dream_uuid)
     set_dream_processing(dream_uuid)
     process_video(user_uuid, dream_uuid)
     set_dream_processed(dream_uuid)
