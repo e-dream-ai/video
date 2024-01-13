@@ -1,6 +1,7 @@
 import os
 from s3 import download_file, upload_file
 from utils.convert_video import convert_video, generate_thumbnail
+from api.dream_api import set_dream_processing, set_dream_processed
 
 
 def process_video(user_uuid, dream_uuid):
@@ -30,3 +31,11 @@ def process_video(user_uuid, dream_uuid):
     os.remove("./assets/{}/{}_processed.mp4".format(dream_uuid, dream_uuid))
     os.remove("./assets/{}/{}.png".format(dream_uuid, dream_uuid))
     os.removedirs("./assets/{}/".format(dream_uuid))
+
+
+def run_process_video(data):
+    user_uuid = data["user_uuid"]
+    dream_uuid = data["dream_uuid"]
+    set_dream_processing(dream_uuid)
+    process_video(user_uuid, dream_uuid)
+    set_dream_processed(dream_uuid)
