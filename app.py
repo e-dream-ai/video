@@ -1,91 +1,41 @@
 import os
-import boto3
-import multiprocessing
+from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-from utils.process_video import process_video
-from api.dream_api import set_dream_processing, set_dream_processed
+from rq import Queue
+from worker import conn
+from utils.process_video import run_process_video
 
 load_dotenv()
 
-DEFAULT_CPU_COUNT = 4
-AWS_REGION = os.getenv("AWS_REGION")
-AWS_SQS_NAME = os.getenv("AWS_SQS_NAME")
-is_production = os.getenv("ENV") == "production"
-is_stage = os.getenv("ENV") == "stage"
+app = Flask(__name__)
+q = Queue(connection=conn)
+
+env_config = os.getenv("APP_SETTINGS", "config.DevelopmentConfig")
+app.config.from_object(env_config)
 
 
-class ProcessVideoQueueProperties:
-    UUID = "UUID"
-    VIDEO = "VIDEO"
-    USER_UUID = "USER_UUID"
+def get_job_status(job):
+    status = {
+        "id": job.id,
+        "result": job.result,
+        "status": "failed"
+        if job.is_failed
+        else "pending"
+        if job.result == None
+        else "completed",
+    }
+    status.update(job.meta)
+    return status
 
 
-sqs = boto3.resource("sqs", region_name=AWS_REGION)
-sqs_queue = sqs.get_queue_by_name(QueueName=AWS_SQS_NAME)
-cpu_count = (
-    multiprocessing.cpu_count() if is_production or is_stage else DEFAULT_CPU_COUNT
-)
-
-
-def worker():
-    print(f"Process ID: {multiprocessing.current_process().pid}")
-    while True:
-        messages = sqs_queue.receive_messages(
-            AttributeNames=["MessageGroupId"],
-            MessageAttributeNames=[
-                ProcessVideoQueueProperties.UUID,
-                ProcessVideoQueueProperties.VIDEO,
-                ProcessVideoQueueProperties.USER_UUID,
-            ],
-            MaxNumberOfMessages=1,
-            WaitTimeSeconds=5,
-        )
-        if len(messages):
-            process_message(messages[0])
-            messages[0].delete()
-
-
-def process_message(message):
-    message_body = message.body
-    message_attributes = message.message_attributes
-    uuid = message_attributes[ProcessVideoQueueProperties.UUID]["StringValue"]
-    user_uuid = message_attributes[ProcessVideoQueueProperties.USER_UUID]["StringValue"]
-    print("-----------")
-    print(f"processing uuid: {message_body}")
-    set_dream_processing(uuid)
-    process_video(user_uuid, uuid)
-    set_dream_processed(uuid)
-
-
-def app():
-    print("Listening queue")
-
-    processes = []
-
-    # Create and start processes
-    for _ in range(cpu_count):
-        p = multiprocessing.Process(target=worker)
-        p.start()
-        processes.append(p)
-
-    try:
-        # Keep the main program running
-        for p in processes:
-            p.join()
-    except KeyboardInterrupt:
-        print("Terminating processes...")
-        for p in processes:
-            p.terminate()
-        for p in processes:
-            p.join()
-    except Exception as e:
-        print("Exception occurred")
-        print(e)
-        for p in processes:
-            p.terminate()
-        for p in processes:
-            p.join()
+@app.route("/process_video", methods=["POST"])
+def process_video_handler():
+    data = request.json
+    new_job = q.enqueue(run_process_video, data)
+    output = get_job_status(new_job)
+    return jsonify(output)
 
 
 if __name__ == "__main__":
-    app()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
