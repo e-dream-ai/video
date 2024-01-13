@@ -28,7 +28,7 @@ def get_job_status(job):
     return status
 
 
-@app.route("/process_video", methods=["POST"])
+@app.route("/process-video", methods=["POST"])
 def process_video_handler():
     data = request.json
     new_job = q.enqueue(run_process_video, data)
