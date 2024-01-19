@@ -7,6 +7,7 @@ from utils.process_video import run_process_video
 
 load_dotenv()
 
+DEFAULT_QUEUE_TIMEOUT = 3600
 app = Flask(__name__)
 q = Queue(connection=conn)
 
@@ -31,7 +32,7 @@ def get_job_status(job):
 @app.route("/process-video", methods=["POST"])
 def process_video_handler():
     data = request.json
-    new_job = q.enqueue(run_process_video, data)
+    new_job = q.enqueue(run_process_video, args=(data,), timeout=DEFAULT_QUEUE_TIMEOUT)
     output = get_job_status(new_job)
     return jsonify(output)
 
