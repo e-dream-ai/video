@@ -36,6 +36,7 @@ def convert_video(input_file, output_file):
         "passthrough",
         "-y",
         output_file,
+        "-report",
     ]
 
     try:
