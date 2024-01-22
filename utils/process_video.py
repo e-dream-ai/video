@@ -6,8 +6,21 @@ from api.dream_api import set_dream_processing, set_dream_processed, set_dream_f
 processed_video_suffix = "processed"
 
 
-def process_video(user_uuid, dream_uuid):
+def create_process_directory(dream_uuid):
     os.mkdir("./assets/{}".format(dream_uuid))
+
+
+def remove_generated_files(dream_uuid):
+    global processed_video_suffix
+    os.remove("./assets/{}/{}.mp4".format(dream_uuid, dream_uuid))
+    os.remove(
+        "./assets/{}/{}_{}.mp4".format(dream_uuid, dream_uuid, processed_video_suffix)
+    )
+    os.remove("./assets/{}/{}.png".format(dream_uuid, dream_uuid))
+    os.removedirs("./assets/{}/".format(dream_uuid))
+
+
+def process_video(user_uuid, dream_uuid):
     download_file(
         file_name="./assets/{}/{}.mp4".format(dream_uuid, dream_uuid),
         object_name="{}/{}/{}.mp4".format(user_uuid, dream_uuid, dream_uuid),
@@ -37,22 +50,18 @@ def process_video(user_uuid, dream_uuid):
         object_name="{}/{}/thumbnails/{}.png".format(user_uuid, dream_uuid, dream_uuid),
     )
 
-    os.remove("./assets/{}/{}.mp4".format(dream_uuid, dream_uuid))
-    os.remove(
-        "./assets/{}/{}_{}.mp4".format(dream_uuid, dream_uuid, processed_video_suffix)
-    )
-    os.remove("./assets/{}/{}.png".format(dream_uuid, dream_uuid))
-    os.removedirs("./assets/{}/".format(dream_uuid))
-
 
 def run_process_video(data):
     user_uuid = data["user_uuid"]
     dream_uuid = data["dream_uuid"]
     set_dream_processing(dream_uuid)
+    create_process_directory(dream_uuid)
     try:
         process_video(user_uuid, dream_uuid)
     except Exception as e:
         print(e)
+        remove_generated_files(dream_uuid)
         set_dream_failed(dream_uuid)
         return
+    remove_generated_files(dream_uuid)
     set_dream_processed(dream_uuid)
