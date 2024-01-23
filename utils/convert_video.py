@@ -24,8 +24,6 @@ def convert_video(input_file, output_file):
         "-i",
         input_file,
         "-an",
-        "-t",
-        "600",
         "-s",
         "1920x1080",
         "-c:v",
