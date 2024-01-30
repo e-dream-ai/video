@@ -7,8 +7,8 @@ from utils.process_video import run_process_video
 
 load_dotenv()
 
-# set default timeout value
-Queue.DEFAULT_TIMEOUT = 3600
+# set default timeout value, 24 hrs
+Queue.DEFAULT_TIMEOUT = 60 * 60 * 24
 
 app = Flask(__name__)
 q = Queue(connection=conn)
