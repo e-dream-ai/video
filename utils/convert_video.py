@@ -30,6 +30,8 @@ def convert_video(input_file, output_file):
         "libx264",
         "-crf",
         "20",
+        "-pix_fmt",
+        "yuv420p",
         "-fps_mode",
         "passthrough",
         "-y",
