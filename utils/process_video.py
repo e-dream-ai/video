@@ -10,9 +10,9 @@ def create_process_directory(dream_uuid):
     os.mkdir("./assets/{}".format(dream_uuid))
 
 
-def remove_generated_files(dream_uuid):
+def remove_generated_files(dream_uuid, extension):
     global processed_video_suffix
-    os.remove("./assets/{}/{}.mp4".format(dream_uuid, dream_uuid))
+    os.remove("./assets/{}/{}.{}".format(dream_uuid, dream_uuid, extension))
     os.remove(
         "./assets/{}/{}_{}.mp4".format(dream_uuid, dream_uuid, processed_video_suffix)
     )
@@ -20,19 +20,19 @@ def remove_generated_files(dream_uuid):
     os.removedirs("./assets/{}/".format(dream_uuid))
 
 
-def process_video(user_uuid, dream_uuid):
+def process_video(user_uuid, dream_uuid, extension):
     download_file(
-        file_name="./assets/{}/{}.mp4".format(dream_uuid, dream_uuid),
-        object_name="{}/{}/{}.mp4".format(user_uuid, dream_uuid, dream_uuid),
+        file_name="./assets/{}/{}.{}".format(dream_uuid, dream_uuid, extension),
+        object_name="{}/{}/{}.{}".format(user_uuid, dream_uuid, dream_uuid, extension),
     )
     convert_video(
-        input_file="./assets/{}/{}.mp4".format(dream_uuid, dream_uuid),
+        input_file="./assets/{}/{}.{}".format(dream_uuid, dream_uuid, extension),
         output_file="./assets/{}/{}_{}.mp4".format(
             dream_uuid, dream_uuid, processed_video_suffix
         ),
     )
     generate_thumbnail(
-        input_file="./assets/{}/{}.mp4".format(dream_uuid, dream_uuid),
+        input_file="./assets/{}/{}.{}".format(dream_uuid, dream_uuid, extension),
         output_file="./assets/{}/{}.png".format(dream_uuid, dream_uuid),
     )
     # upload video
@@ -54,14 +54,15 @@ def process_video(user_uuid, dream_uuid):
 def run_process_video(data):
     user_uuid = data["user_uuid"]
     dream_uuid = data["dream_uuid"]
+    extension = data["extension"]
     set_dream_processing(dream_uuid)
     create_process_directory(dream_uuid)
     try:
-        process_video(user_uuid, dream_uuid)
+        process_video(user_uuid, dream_uuid, extension)
     except Exception as e:
         print(e)
-        remove_generated_files(dream_uuid)
+        remove_generated_files(dream_uuid, extension)
         set_dream_failed(dream_uuid)
         return
-    remove_generated_files(dream_uuid)
+    remove_generated_files(dream_uuid, extension)
     set_dream_processed(dream_uuid)
