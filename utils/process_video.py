@@ -25,15 +25,16 @@ def process_video(user_uuid, dream_uuid, extension):
         file_name="./assets/{}/{}.{}".format(dream_uuid, dream_uuid, extension),
         object_name="{}/{}/{}.{}".format(user_uuid, dream_uuid, dream_uuid, extension),
     )
+    converted_video_file = "./assets/{}/{}_{}.mp4".format(
+        dream_uuid, dream_uuid, processed_video_suffix
+    )
     convert_video(
         input_file="./assets/{}/{}.{}".format(dream_uuid, dream_uuid, extension),
-        output_file="./assets/{}/{}_{}.mp4".format(
-            dream_uuid, dream_uuid, processed_video_suffix
-        ),
+        output_file=converted_video_file,
     )
     generate_thumbnail(
-        input_file="./assets/{}/{}.{}".format(dream_uuid, dream_uuid, extension),
-        output_file="./assets/{}/{}.png".format(dream_uuid, dream_uuid),
+        input_file=converted_video_file,
+        output_file_base="./assets/{}/{}".format(dream_uuid, dream_uuid),
     )
     # upload video
     upload_file(

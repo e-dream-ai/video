@@ -45,12 +45,19 @@ def convert_video(input_file, output_file):
         print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
 
 
-def generate_thumbnail(input_file, output_file):
-    cmd = ["ffmpeg", "-i", input_file, "-vframes", "1", "-y", output_file]
-
+def generate_thumbnail(input_file, output_file_base):
+    output_file_png = output_file_base + ".png"
+    cmd = ["ffmpeg", "-i", input_file, "-frames:v", "1", "-update", "1", "-y", output_file_png]
     try:
         subprocess.call(cmd)
-        print("Success: {} extracted {}".format(input_file, output_file))
+        print("Success: {} extracted {}".format(input_file, output_file_png))
+    except subprocess.CalledProcessError as e:
+        print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
+    output_file_jpg = output_file_base + ".jpg"
+    cmd2 = ["ffmpeg", "-i", input_file, "-vf", "scale=160:90", "-frames:v", "1", "-update", "1" , "-y", output_file_jpg]
+    try:
+        subprocess.call(cmd2)
+        print("Success: {} extracted {}".format(input_file, output_file_jpg))
     except subprocess.CalledProcessError as e:
         print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
 
