@@ -30,6 +30,11 @@ Install [pyenv](https://github.com/pyenv/pyenv) and config python 3.12.x, on mac
 
 ```bash
 brew install pyenv
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
+echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
+echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+pyenv install 3.12.1
+pyenv global 3.12.1
 ```
 
 Install [redis](https://redis.io/docs/install/install-redis/), on macOS
