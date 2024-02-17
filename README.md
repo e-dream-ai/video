@@ -8,6 +8,8 @@
 
 ## About
 
+To test, see utils/test.py
+
 ### Notes
 
 - Python worker and python Flask server runs on Heroku.
@@ -66,6 +68,9 @@ Run flask app on other terminal
 ```bash
  flask run
 ```
+
+Note flask requires configuration and a backend to connect to.
+Needs more doc.
 
 Now flask server is running and waiting for requests to process videos
 
