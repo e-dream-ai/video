@@ -45,10 +45,20 @@ def process_video(user_uuid, dream_uuid, extension):
             user_uuid, dream_uuid, dream_uuid, processed_video_suffix
         ),
     )
-    # upload thumbnail
+    # upload thumbnail .png
     upload_file(
         file_name="./assets/{}/{}.png".format(dream_uuid, dream_uuid),
         object_name="{}/{}/thumbnails/{}.png".format(user_uuid, dream_uuid, dream_uuid),
+    )
+    # upload thumbnail .jpg
+    upload_file(
+        file_name="./assets/{}/{}.jpg".format(dream_uuid, dream_uuid),
+        object_name="{}/{}/thumbnails/{}.jpg".format(user_uuid, dream_uuid, dream_uuid),
+    )
+    # upload thumbnail _1280.jpg
+    upload_file(
+        file_name="./assets/{}/{}_1280.jpg".format(dream_uuid, dream_uuid),
+        object_name="{}/{}/thumbnails/{}_1280.jpg".format(user_uuid, dream_uuid, dream_uuid),
     )
 
 

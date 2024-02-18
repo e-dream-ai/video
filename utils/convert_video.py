@@ -53,10 +53,17 @@ def generate_thumbnail(input_file, output_file_base):
         print("Success: {} extracted {}".format(input_file, output_file_png))
     except subprocess.CalledProcessError as e:
         print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
+    output_file_1280_jpg = output_file_base + "_1280.jpg"
     output_file_jpg = output_file_base + ".jpg"
     cmd2 = ["ffmpeg", "-i", input_file, "-vf", "scale=160:90", "-frames:v", "1", "-update", "1" , "-y", output_file_jpg]
     try:
         subprocess.call(cmd2)
+        print("Success: {} extracted {}".format(input_file, output_file_jpg))
+    except subprocess.CalledProcessError as e:
+        print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
+    cmd3 = ["ffmpeg", "-i", input_file, "-vf", "scale=1280:720", "-frames:v", "1", "-update", "1" , "-y", output_file_1280_jpg]
+    try:
+        subprocess.call(cmd3)
         print("Success: {} extracted {}".format(input_file, output_file_jpg))
     except subprocess.CalledProcessError as e:
         print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
