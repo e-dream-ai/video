@@ -1,6 +1,7 @@
 blinker==1.7.0
 boto3==1.34.13
 botocore==1.34.13
+bugsnag==4.6.1
 certifi==2023.11.17
 charset-normalizer==3.3.2
 click==8.1.7
