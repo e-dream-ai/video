@@ -7,17 +7,24 @@ processed_video_suffix = "processed"
 
 
 def create_process_directory(dream_uuid):
-    os.mkdir("./assets/{}".format(dream_uuid))
+    directory_path = "./assets/{}".format(dream_uuid)
+    directory_exists = os.path.exists(directory_path)
+    if not directory_exists:
+        os.mkdir(directory_path)
 
 
-def remove_generated_files(dream_uuid, extension):
-    global processed_video_suffix
-    os.remove("./assets/{}/{}.{}".format(dream_uuid, dream_uuid, extension))
-    os.remove(
-        "./assets/{}/{}_{}.mp4".format(dream_uuid, dream_uuid, processed_video_suffix)
-    )
-    os.remove("./assets/{}/{}.png".format(dream_uuid, dream_uuid))
-    os.removedirs("./assets/{}/".format(dream_uuid))
+def remove_generated_files(dream_uuid):
+    directory_path = "./assets/{}/".format(dream_uuid)
+
+    files = os.listdir(directory_path)
+
+    for file in files:
+        file_path = os.path.join(directory_path, file)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+    if os.path.exists(directory_path):
+        os.removedirs(directory_path)
 
 
 def process_video(user_uuid, dream_uuid, extension):
@@ -61,8 +68,8 @@ def run_process_video(data):
         process_video(user_uuid, dream_uuid, extension)
     except Exception as e:
         print(e)
-        remove_generated_files(dream_uuid, extension)
+        remove_generated_files(dream_uuid)
         set_dream_failed(dream_uuid)
         return
-    remove_generated_files(dream_uuid, extension)
+    remove_generated_files(dream_uuid)
     set_dream_processed(dream_uuid)
