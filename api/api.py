@@ -34,7 +34,7 @@ def get_backend_url():
 def set_token(token):
     global session
     if token:
-        session.headers.update({"Authorization": f"Bearer {token}"})
+        session.headers["Authorization"] = "Bearer " + token
 
 
 def set_refresh_token(token):
@@ -68,6 +68,7 @@ def login_user():
 def refresh_token_user():
     global session
     token = get_refresh_token()
+    session.headers["Authorization"] = None
 
     try:
         res = session.post(
@@ -82,13 +83,24 @@ def refresh_token_user():
         print(errh.args[0])
 
 
-def refresh_token_hook(r, *args, **kwargs):
+def refresh_token_hook(response, *args, **kwargs):
     global session
-    if r.status_code == 401:
-        token = refresh_token_user()
-        session.headers.update({"Authorization": f"Bearer {token}"})
-        r.request.headers["Authorization"] = session.headers["Authorization"]
-        return session.send(r.request, verify=False)
+    if response.status_code == 401:
+        new_access_token = refresh_token_user()
+        original_request = response.request
+        original_request.headers["Authorization"] = "Bearer " + new_access_token
+
+        # Reissue the modified request
+        new_response = session.send(original_request)
+
+        # Set token to session
+        set_token(new_access_token)
+
+        # Return the new response
+        return new_response
+
+    # If the response doesn't require token refresh, return it as is
+    return response
 
 
 if __name__ == "__main__":
