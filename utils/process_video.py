@@ -1,4 +1,5 @@
 import os
+import subprocess
 from s3 import download_file, upload_file
 from utils.convert_video import convert_video, generate_thumbnail
 from api.dream_api import set_dream_processing, set_dream_processed, set_dream_failed
@@ -25,6 +26,50 @@ def remove_generated_files(dream_uuid):
 
     if os.path.exists(directory_path):
         os.removedirs(directory_path)
+
+
+def get_file_size(file_path):
+    try:
+        # Get the size of the file in bytes
+        size_bytes = os.path.getsize(file_path)
+        return size_bytes
+    except FileNotFoundError:
+        return None
+
+
+def get_frame_count(video_path):
+    # Validate if the video path exists
+    if not os.path.exists(video_path):
+        print("Error: Video path does not exist.")
+        return None
+
+    # Run ffprobe command to get total frames
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-count_frames",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=nb_frames",
+        "-of",
+        "default=nokey=1:noprint_wrappers=1",
+        video_path,
+    ]
+    process = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+
+    # Capture stdout output
+    output, _ = process.communicate()
+
+    # Check if output contains the total number of frames
+    if output.strip().isdigit():
+        return int(output.strip())
+    else:
+        print("Error: Unable to get total frames from video.")
+        return None
 
 
 def process_video(user_uuid, dream_uuid, extension):
@@ -71,5 +116,14 @@ def run_process_video(data):
         remove_generated_files(dream_uuid)
         set_dream_failed(dream_uuid)
         return
+    processed_video_path = "./assets/{}/{}_{}.mp4".format(
+        dream_uuid, dream_uuid, processed_video_suffix
+    )
+    processed_video_size = get_file_size(processed_video_path)
+    processed_video_frames = get_frame_count(processed_video_path)
+    set_dream_processed(
+        uuid=dream_uuid,
+        processed_video_size=processed_video_size,
+        processed_video_frames=processed_video_frames,
+    )
     remove_generated_files(dream_uuid)
-    set_dream_processed(dream_uuid)
