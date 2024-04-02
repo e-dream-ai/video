@@ -17,12 +17,16 @@ def set_dream_processing(uuid: str):
 
 
 def set_dream_processed(
-    uuid: str, processed_video_size: int | None, processed_video_frames: int | None
+    uuid: str,
+    processed_video_size: int | None,
+    processed_video_frames: int | None,
+    process_video_fps: int | None,
 ):
     session = get_session()
     json_data = {
         "processedVideoSize": processed_video_size,
         "processedVideoFrames": processed_video_frames,
+        "processedVideoFPS": process_video_fps,
     }
     try:
         session.post(

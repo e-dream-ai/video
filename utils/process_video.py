@@ -72,6 +72,47 @@ def get_frame_count(video_path):
         return None
 
 
+def get_video_fps(video_path):
+    # Validate if the video path exists
+    if not os.path.exists(video_path):
+        print("Error: Video path does not exist.")
+        return None
+
+    # Run ffprobe command to get FPS
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=r_frame_rate",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        video_path,
+    ]
+    process = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+
+    # Capture stdout output
+    output, _ = process.communicate()
+
+    # Check if output contains the frame rate
+    if "/" in output:
+        num, denom = output.strip().split("/")
+        if denom != "0":
+            # rounding to the nearest integer
+            fps = round(float(num) / float(denom))
+            return fps
+        else:
+            print("Error: Denominator of FPS is 0.")
+            return None
+    else:
+        print("Error: Unable to get FPS from video.")
+        return None
+
+
 def process_video(user_uuid, dream_uuid, extension):
     download_file(
         file_name="./assets/{}/{}.{}".format(dream_uuid, dream_uuid, extension),
@@ -121,9 +162,11 @@ def run_process_video(data):
     )
     processed_video_size = get_file_size(processed_video_path)
     processed_video_frames = get_frame_count(processed_video_path)
+    process_video_fps = get_video_fps(processed_video_path)
     set_dream_processed(
         uuid=dream_uuid,
         processed_video_size=processed_video_size,
         processed_video_frames=processed_video_frames,
+        process_video_fps=process_video_fps,
     )
     remove_generated_files(dream_uuid)
