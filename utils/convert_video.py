@@ -32,6 +32,8 @@ def convert_video(input_file, output_file):
         "24",
         "-pix_fmt",
         "yuv420p",
+        "-tag:v",
+        "hvc1",
         "-fps_mode",
         "passthrough",
         "-y",
