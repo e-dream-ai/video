@@ -168,5 +168,6 @@ def run_process_video(data):
         processed_video_size=processed_video_size,
         processed_video_frames=processed_video_frames,
         process_video_fps=process_video_fps,
+        activity_level=30/process_video_fps,
     )
     remove_generated_files(dream_uuid)
