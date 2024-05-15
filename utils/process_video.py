@@ -102,9 +102,7 @@ def get_video_fps(video_path):
     if "/" in output:
         num, denom = output.strip().split("/")
         if denom != "0":
-            # rounding to the nearest integer
-            fps = round(float(num) / float(denom))
-            return fps
+            return float(num) / float(denom)
         else:
             print("Error: Denominator of FPS is 0.")
             return None
