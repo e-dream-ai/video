@@ -14,3 +14,9 @@ class DevelopmentConfig(Config):
     DEVELOPMENT = True
     TEMPLATES_AUTO_RELOAD = True
     ASSETS_DEBUG = True
+
+
+class Env:
+    DEVELOPMENT = "development"
+    PRODUCTION = "production"
+    LOCAL = "local"

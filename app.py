@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from rq import Queue
 from worker import conn
 from utils.process_video import run_process_video
+from config import Env
 
 load_dotenv()
 
@@ -13,17 +14,24 @@ Queue.DEFAULT_TIMEOUT = 60 * 60 * 24
 
 app = Flask(__name__)
 q = Queue(connection=conn)
+env = os.getenv("ENV")
 env_config = os.getenv("APP_SETTINGS", "config.DevelopmentConfig")
 app.config.from_object(env_config)
-logger = logging.getLogger(__name__)
 
 
 # Configure flask logging
-logging.basicConfig(
-    level=logging.DEBUG,  # Set to DEBUG to capture all logs
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("flask.log"), logging.StreamHandler()],
-)
+if env == Env.LOCAL:
+    logging.basicConfig(
+        level=logging.DEBUG,  # Set to DEBUG to capture all logs
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler("flask.log"), logging.StreamHandler()],
+    )
+else:
+    logging.basicConfig(
+        level=logging.WARNING,  # Set to WARNING to capture warnings and errors
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.StreamHandler()],
+    )
 
 
 def get_job_status(job):
