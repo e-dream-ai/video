@@ -22,6 +22,7 @@ def set_dream_processed(
     processed_video_frames: int | None,
     process_video_fps: int | None,
     activity_level: float | None,
+    filmstrip_frames_array,
 ):
     session = get_session()
     json_data = {
@@ -29,6 +30,7 @@ def set_dream_processed(
         "processedVideoFrames": processed_video_frames,
         "processedVideoFPS": process_video_fps,
         "activityLevel": activity_level,
+        "filmstrip": filmstrip_frames_array,
     }
     try:
         session.post(
