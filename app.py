@@ -1,4 +1,5 @@
 import os
+import logging
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from rq import Queue
@@ -12,20 +13,28 @@ Queue.DEFAULT_TIMEOUT = 60 * 60 * 24
 
 app = Flask(__name__)
 q = Queue(connection=conn)
-
 env_config = os.getenv("APP_SETTINGS", "config.DevelopmentConfig")
 app.config.from_object(env_config)
+logger = logging.getLogger(__name__)
+
+
+# Configure flask logging
+logging.basicConfig(
+    level=logging.DEBUG,  # Set to DEBUG to capture all logs
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("flask.log"), logging.StreamHandler()],
+)
 
 
 def get_job_status(job):
     status = {
         "id": job.id,
         "result": job.result,
-        "status": "failed"
-        if job.is_failed
-        else "pending"
-        if job.result == None
-        else "completed",
+        "status": (
+            "failed"
+            if job.is_failed
+            else "pending" if job.result == None else "completed"
+        ),
     }
     status.update(job.meta)
     return status

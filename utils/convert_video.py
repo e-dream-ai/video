@@ -69,7 +69,7 @@ def generate_filmstrip(input_file, output_dir, filmstrip_frames_array):
             "-i",
             input_file,
             "-vf",
-            f"select=eq(n\,{frame_number})",
+            f"select=eq(n\\,{frame_number})",
             "-vframes",
             "1",
             "-y",
