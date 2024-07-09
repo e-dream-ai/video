@@ -62,27 +62,33 @@ def generate_filmstrip(input_file, output_dir, filmstrip_frames_array):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    for frame_number in filmstrip_frames_array:
-        output_file = os.path.join(output_dir, f"frame-{frame_number}.jpg")
-        cmd = [
-            "ffmpeg",
-            "-i",
-            input_file,
-            "-vf",
-            f"select=eq(n\\,{frame_number})",
-            "-vframes",
-            "1",
-            "-y",
-            output_file,
-        ]
+    # filter string for selecting frames
+    select_frames = "+".join([f"eq(n\\,{frame})" for frame in filmstrip_frames_array])
+    temp_output_pattern = os.path.join(output_dir, "temp_frame-%d.jpg")
 
-        try:
-            subprocess.call(cmd)
-            print("Success: {} extracted {}".format(input_file, output_file))
-        except subprocess.CalledProcessError as e:
-            print(
-                "Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode)
-            )
+    # ffmpeg command
+    cmd = [
+        "ffmpeg",
+        "-i",
+        input_file,
+        "-vf",
+        f"select='{select_frames}',setpts=N/FRAME_RATE/TB",
+        "-vsync",
+        "vfr",
+        temp_output_pattern,
+    ]
+
+    try:
+        subprocess.call(cmd)
+        # rename the frames to match the frame numbers
+        for i, frame_number in enumerate(filmstrip_frames_array, start=1):
+            temp_frame_file = os.path.join(output_dir, f"temp_frame-{i}.jpg")
+            final_frame_file = os.path.join(output_dir, f"frame-{frame_number}.jpg")
+            os.rename(temp_frame_file, final_frame_file)
+
+        print("Success: filmstrip extracted")
+    except subprocess.CalledProcessError as e:
+        print("Error: FFmpeg returned a non-zero exit code ({})".format(e.returncode))
 
 
 if __name__ == "__main__":
