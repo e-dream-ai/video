@@ -1,5 +1,6 @@
 import os
 import redis
+import logging
 from rq import Worker, Queue, Connection
 from rq.registry import FailedJobRegistry
 
@@ -8,6 +9,13 @@ listen = ["high", "default", "low"]
 redis_url = os.getenv("REDISCLOUD_URL", "redis://localhost:6379")
 
 conn = redis.from_url(redis_url)
+
+# # Configure RQ worker logging
+logging.basicConfig(
+    level=logging.DEBUG,  # Match the logging level with the main app
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("rq_worker.log"), logging.StreamHandler()],
+)
 
 
 # requeue failed jobs function

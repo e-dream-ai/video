@@ -1,9 +1,13 @@
 import os
 import subprocess
+import logging
 from s3 import download_file, upload_file
 from utils.convert_video import convert_video, generate_thumbnail, generate_filmstrip
 from api.dream_api import set_dream_processing, set_dream_processed, set_dream_failed
 
+
+# Get the logger for the current module
+logger = logging.getLogger(__name__)
 processed_video_suffix = "processed"
 
 
@@ -15,14 +19,19 @@ def create_process_directory(dream_uuid):
 
 
 def remove_generated_files(dream_uuid):
+    # filmstrip directory
     filmstrip_directory_path = "./assets/{}/filmstrip".format(dream_uuid)
     filmstrip_files = os.listdir(filmstrip_directory_path)
 
     for file in filmstrip_files:
-        file_path = os.path.join(directory_path, file)
+        file_path = os.path.join(filmstrip_directory_path, file)
         if os.path.isfile(file_path):
             os.remove(file_path)
 
+    if os.path.exists(filmstrip_directory_path):
+        os.removedirs(filmstrip_directory_path)
+
+    # dream directory
     directory_path = "./assets/{}/".format(dream_uuid)
     files = os.listdir(directory_path)
 
@@ -204,7 +213,7 @@ def run_process_video(data):
     processed_video_size = get_file_size(processed_video_path)
     processed_video_frames = get_frame_count(processed_video_path)
     process_video_fps = get_video_fps(processed_video_path)
-    filmstrip_frames_array = get_filmstrip_array()
+    filmstrip_frames_array = get_filmstrip_array(total_frames=processed_video_frames)
     process_filmstrip(
         user_uuid, dream_uuid, processed_video_path, filmstrip_frames_array
     )
