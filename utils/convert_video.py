@@ -2,7 +2,6 @@ import os
 import subprocess
 import sys
 import platform
-from pathlib import Path
 
 
 def get_hardware_acceleration_codec():
@@ -84,7 +83,8 @@ def generate_filmstrip(input_file, output_dir, filmstrip_frames_array):
         for i, frame_number in enumerate(filmstrip_frames_array, start=1):
             temp_frame_file = os.path.join(output_dir, f"temp_frame-{i}.jpg")
             final_frame_file = os.path.join(output_dir, f"frame-{frame_number}.jpg")
-            os.rename(temp_frame_file, final_frame_file)
+            if os.path.exists(temp_frame_file):
+                os.rename(temp_frame_file, final_frame_file)
 
         print("Success: filmstrip extracted")
     except subprocess.CalledProcessError as e:

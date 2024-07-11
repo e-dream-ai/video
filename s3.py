@@ -39,6 +39,9 @@ def upload_file(file_name, object_name=None):
     :return: True if file was uploaded, else False
     """
 
+    if not os.path.exists(file_name):
+        return False
+
     # If S3 object_name was not specified, use file_name
     if object_name is None:
         object_name = os.path.basename(file_name)
