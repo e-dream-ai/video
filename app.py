@@ -1,16 +1,29 @@
-import os
-from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+load_dotenv()
+import os
+
+ENV = os.environ.get('ENV')
+
+if ENV != 'local':
+    import bugsnag
+    bugsnag.configure(
+        api_key="0e46974776f7e4f9ecd2114695d9f3d3",
+        project_root="/",
+    )
+    from bugsnag.flask import handle_exceptions
+
+from flask import Flask, request, jsonify
 from rq import Queue
 from worker import conn
 from utils.process_video import run_process_video
 
-load_dotenv()
 
 # set default timeout value, 24 hrs
 Queue.DEFAULT_TIMEOUT = 60 * 60 * 24
 
 app = Flask(__name__)
+if ENV != 'local':
+    handle_exceptions(app)
 q = Queue(connection=conn)
 
 env_config = os.getenv("APP_SETTINGS", "config.DevelopmentConfig")
