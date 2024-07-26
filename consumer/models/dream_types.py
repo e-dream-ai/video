@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import List, Optional, Dict, ByteString, Any
+from typing import List, Optional, Dict, ByteString
 from dataclasses import dataclass
 from .user_types import User
+from .vote_types import Vote
 
 
 # Enum for DreamStatusType
@@ -19,20 +20,20 @@ class Dream:
     id: int
     name: str
     activityLevel: int
-    featureRank: int
     thumbnail: str
-    displayedOwner: User
     user: User
     uuid: str
     video: str
+    featureRank: Optional[int] = None
+    displayedOwner: Optional[User] = None
     frontendUrl: Optional[str] = None
     original_video: Optional[str] = None
-    processedVideoSize: Optional[int] = None
+    processedVideoSize: Optional[str] = None
     processedVideoFrames: Optional[int] = None
-    processedVideoFPS: Optional[int] = None
+    processedVideoFPS: Optional[str] = None
     status: DreamStatusType = DreamStatusType.NONE
     nsfw: Optional[bool] = None
-    playlistItems: Any = None
+    # playlistItems: Any = None
     filmstrip: Optional[List[str]] = None
     upvotes: Optional[int] = None
     downvotes: Optional[int] = None
@@ -80,3 +81,26 @@ class MultipartUploadRequest:
     filePart: ByteString
     partNumber: int
     totalParts: int
+
+
+# Data class for DreamResponseWrapper
+@dataclass
+class DreamResponseWrapper:
+    dream: Optional[Dream]
+
+
+# Data class for DreamVoteResponseWrapper
+@dataclass
+class DreamVoteResponseWrapper:
+    vote: Optional[Vote]
+
+
+# Data class for UpdateDreamRequest
+@dataclass
+class UpdateDreamRequest:
+    name: Optional[str] = None
+    video: Optional[str] = None
+    thumbnail: Optional[str] = None
+    activityLevel: Optional[int] = None
+    featureRank: Optional[int] = None
+    displayedOwner: Optional[int] = None

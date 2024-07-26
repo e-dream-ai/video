@@ -1,4 +1,5 @@
 import requests
+from typing import Optional, Any, Dict
 
 BACKEND_URL = "http://localhost:8081/api/v1"
 API_KEY = "API_KEY"
@@ -16,14 +17,26 @@ class ApiClient:
             }
         )
 
-    def get(self, endpoint, params=None):
+    def request(
+        self,
+        method: str,
+        endpoint: str,
+        params: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
+    ) -> Any:
         url = f"{BACKEND_URL}{endpoint}"
-        response = self.session.get(url, params=params)
+        response = self.session.request(method, url, params=params, json=data)
         response.raise_for_status()
         return response.json()
 
-    def post(self, endpoint, data=None):
-        url = f"{BACKEND_URL}{endpoint}"
-        response = self.session.post(url, json=data)
-        response.raise_for_status()
-        return response.json()
+    def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Any:
+        return self.request("GET", endpoint, params=params)
+
+    def post(self, endpoint: str, data: Optional[Dict[str, Any]] = None) -> Any:
+        return self.request("POST", endpoint, data=data)
+
+    def put(self, endpoint: str, data: Optional[Dict[str, Any]] = None) -> Any:
+        return self.request("PUT", endpoint, data=data)
+
+    def delete(self, endpoint: str, data: Optional[Dict[str, Any]] = None) -> Any:
+        return self.request("DELETE", endpoint, data=data)

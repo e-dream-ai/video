@@ -33,7 +33,7 @@ class Role:
 @dataclass
 class User:
     id: int
-    email: str
+    email: Optional[str] = None
     name: Optional[str] = None
     description: Optional[str] = None
     avatar: Optional[str] = None
@@ -53,3 +53,8 @@ class User:
 @dataclass
 class UserWithToken(User):
     token: Optional[Token] = None
+
+
+@dataclass
+class UserResponseWrapper:
+    user: Optional[User]
