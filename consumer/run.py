@@ -11,6 +11,7 @@ from controllers.playlist import (
     get_playlist,
     update_playlist,
     add_item_to_playlist,
+    add_file_to_playlist,
     delete_item_from_playlist,
     delete_playlist,
 )
@@ -42,9 +43,13 @@ def run():
     # )
     # add_item_to_playlist(playlistId=32, type=PlaylistItemType.DREAM, id=357)
     # delete_item_from_playlist(playlist_id=32, playlist_item_id=206)
+    # add_file_to_playlist(
+    #     playlist_id=32,
+    #     file_path="path_to_file/python_video.mp4",
+    # )
 
     # file
-    upload_file("path_to_file/python_video.mp4")
+    # upload_file("path_to_file/python_video.mp4")
     pass
 
 

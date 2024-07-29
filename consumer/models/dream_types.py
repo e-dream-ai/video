@@ -23,11 +23,11 @@ class Dream:
     thumbnail: str
     user: User
     uuid: str
-    video: str
+    original_video: Optional[str] = None
+    video: Optional[str] = None
     featureRank: Optional[int] = None
     displayedOwner: Optional[User] = None
     frontendUrl: Optional[str] = None
-    original_video: Optional[str] = None
     processedVideoSize: Optional[str] = None
     processedVideoFrames: Optional[int] = None
     processedVideoFPS: Optional[str] = None

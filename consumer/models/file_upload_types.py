@@ -39,7 +39,6 @@ class CompletedPart:
 # Data class for RefreshMultipartUploadUrlFormValues
 @dataclass
 class RefreshMultipartUploadUrlFormValues:
-    uuid: str
     extension: str
     uploadId: str
     part: int

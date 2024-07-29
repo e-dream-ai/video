@@ -6,6 +6,7 @@ from models.playlist_types import (
     PlaylistItemType,
     UpdatePlaylistRequest,
 )
+from controllers.file_upload import upload_file
 from utils.api_utils import deserialize_api_response
 from dataclasses import asdict
 
@@ -37,6 +38,14 @@ def add_item_to_playlist(
     response = deserialize_api_response(data, PlaylistResponseWrapper)
     playlist = response.data.playlist
     return playlist
+
+
+def add_file_to_playlist(playlist_id: int, file_path: str):
+    dream = upload_file(file_path)
+    add_item_to_playlist(
+        playlist_id=playlist_id, type=PlaylistItemType.DREAM, id=dream.id
+    )
+    return dream
 
 
 def delete_item_from_playlist(

@@ -10,6 +10,7 @@ from models.file_upload_types import (
     CompleteMultipartUploadFormValues,
     RefreshMultipartUpload,
     CompletedPart,
+    RefreshMultipartUploadUrlFormValues,
 )
 from models.dream_types import (
     DreamResponseWrapper,
@@ -46,7 +47,7 @@ def upload_file_request(
         cleaned_etag = etag.strip('"')
         return cleaned_etag
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        # print(f"An error occurred: {e}")
         return None
 
 
@@ -62,31 +63,44 @@ def create_multipart_upload(
 
 def refresh_multipart_upload_url(
     uuid: str,
-    request_data: CompleteMultipartUploadFormValues,
+    request_data: RefreshMultipartUploadUrlFormValues,
 ) -> RefreshMultipartUpload:
     request_data_dict = asdict(request_data)
     data = client.post(f"/dream/{uuid}/refresh-multipart-upload-url", request_data_dict)
-    response = deserialize_api_response(data, MultipartUpload)
+    response = deserialize_api_response(data, RefreshMultipartUpload)
     multipart_upload = response.data
     return multipart_upload
 
 
 def upload_file_part(
+    uuid: str,
+    upload_id: str,
     presigned_url: str,
+    part_number: int,
     file_part: bytes,
     file_type: Optional[str] = None,
 ) -> Optional[str]:
     attempt = 0
+    url = presigned_url
     while attempt < max_retries:
-        result = upload_file_request(presigned_url, file_part, file_type)
+        result = upload_file_request(
+            presigned_url=url, file_part=file_part, file_type=file_type
+        )
         if result is not None:
             return result
         else:
             print(f"Attempt {attempt + 1} failed.")
             attempt += 1
             if attempt < max_retries:
-                print(f"Retrying in {retry_delay} seconds...")
-                time.sleep(retry_delay)
+                print(f"Retrying part {attempt + 1}.")
+                refresh_result = refresh_multipart_upload_url(
+                    uuid,
+                    RefreshMultipartUploadUrlFormValues(
+                        uploadId=upload_id, part=part_number, extension=file_type
+                    ),
+                )
+                new_url = refresh_result.url
+                url = new_url
             else:
                 raise f"Upload failed. Max retries reached on part {file_part}"
 
@@ -98,8 +112,7 @@ def complete_multipart_upload(
     request_data_dict = asdict(request_data)
     data = client.post(f"/dream/{uuid}/complete-multipart-upload", request_data_dict)
     response = deserialize_api_response(data, DreamResponseWrapper)
-    dream = response.data.dream
-    return dream
+    return response.data
 
 
 def upload_file(file_path: str):
@@ -116,21 +129,38 @@ def upload_file(file_path: str):
     )
 
     dream = multipart_upload.dream
+    dream_uuid = dream.uuid
     upload_id = multipart_upload.uploadId
     urls = multipart_upload.urls
     completed_parts: List[CompletedPart] = []
 
-    with open(file_path, "rb") as file:
-        while part_data := file.read(part_size):
-            for index, url in enumerate(urls):
-                print(f"Index {index}: {url}")
-                part_number = index + 1
-                etag = upload_file_part(
-                    presigned_url=url, file_part=part_data, file_type=file_extension
-                )
-                completed_parts.append(CompletedPart(ETag=etag, PartNumber=part_number))
+    # in progreess bytes uploaded
+    bytes_uploaded = 0
 
-    complete_multipart_upload(
+    with open(file_path, "rb") as file:
+        for index, url in enumerate(urls):
+            part_number = index + 1
+            part_data = file.read(part_size)
+
+            # Exit the loop if read all the data
+            if not part_data:
+                break
+
+            print(f"Uploading part {part_number}")
+            etag = upload_file_part(
+                uuid=dream_uuid,
+                upload_id=upload_id,
+                part_number=part_number,
+                presigned_url=url,
+                file_part=part_data,
+                file_type=file_extension,
+            )
+            completed_parts.append(CompletedPart(ETag=etag, PartNumber=part_number))
+            bytes_uploaded += len(part_data)
+            progress_percentage = (bytes_uploaded / file_size) * 100
+            print(f"Upload progress: {progress_percentage:.2f}%")
+
+    completed_upload = complete_multipart_upload(
         dream.uuid,
         CompleteMultipartUploadFormValues(
             uploadId=upload_id,
@@ -139,3 +169,6 @@ def upload_file(file_path: str):
             parts=completed_parts,
         ),
     )
+
+    print("Upload completed.")
+    return completed_upload.dream
