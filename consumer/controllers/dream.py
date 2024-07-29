@@ -1,7 +1,12 @@
 from typing import Optional
+from dataclasses import asdict
 from client.api_client import ApiClient
 from models.api_types import ApiResponse
-from models.dream_types import DreamResponseWrapper, DreamVoteResponseWrapper
+from models.dream_types import (
+    DreamResponseWrapper,
+    DreamVoteResponseWrapper,
+    UpdateDreamRequest,
+)
 from utils.api_utils import deserialize_api_response
 
 client = ApiClient()
@@ -14,9 +19,11 @@ def get_dream(uuid: str) -> Optional[ApiResponse[DreamResponseWrapper]]:
     return dream
 
 
-# wip
-def update_dream(uuid: str) -> Optional[ApiResponse[DreamResponseWrapper]]:
-    data = client.put(f"/dream/{uuid}")
+def update_dream(
+    id: int, request_data: UpdateDreamRequest
+) -> Optional[ApiResponse[DreamResponseWrapper]]:
+    request_data_dict = asdict(request_data)
+    data = client.put(f"/dream/{id}", request_data_dict)
     response = deserialize_api_response(data, DreamResponseWrapper)
     dream = response.data.dream
     return dream

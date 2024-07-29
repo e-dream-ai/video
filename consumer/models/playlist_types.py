@@ -50,7 +50,7 @@ class PlaylistResponseWrapper:
 
 
 # Data class for UpdatePlaylistRequest
-# @dataclass
+@dataclass
 class UpdatePlaylistRequest:
     name: Optional[str] = None
     featureRank: Optional[int] = None

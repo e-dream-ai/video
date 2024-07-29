@@ -1,8 +1,13 @@
 from typing import Optional
 from client.api_client import ApiClient
 from models.api_types import ApiResponse
-from models.playlist_types import PlaylistResponseWrapper, PlaylistItemType
+from models.playlist_types import (
+    PlaylistResponseWrapper,
+    PlaylistItemType,
+    UpdatePlaylistRequest,
+)
 from utils.api_utils import deserialize_api_response
+from dataclasses import asdict
 
 client = ApiClient()
 
@@ -14,9 +19,11 @@ def get_playlist(id: int) -> Optional[ApiResponse[PlaylistResponseWrapper]]:
     return playlist
 
 
-# wip
-def update_playlist(id: int) -> Optional[ApiResponse[PlaylistResponseWrapper]]:
-    data = client.get(f"/playlist/{id}")
+def update_playlist(
+    uuid: str, request_data: UpdatePlaylistRequest
+) -> Optional[ApiResponse[PlaylistResponseWrapper]]:
+    request_data_dict = asdict(request_data)
+    data = client.put(f"/playlist/{uuid}", request_data_dict)
     response = deserialize_api_response(data, PlaylistResponseWrapper)
     playlist = response.data.playlist
     return playlist

@@ -24,10 +24,34 @@ class ApiClient:
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
     ) -> Any:
-        url = f"{BACKEND_URL}{endpoint}"
-        response = self.session.request(method, url, params=params, json=data)
-        response.raise_for_status()
-        return response.json()
+        try:
+            url = f"{BACKEND_URL}{endpoint}"
+            filtered_data = {k: v for k, v in (data or {}).items() if v is not None}
+            response = self.session.request(
+                method, url, params=params, json=filtered_data
+            )
+            response.raise_for_status()
+            return response.json()
+
+        except requests.exceptions.HTTPError as http_err:
+            # Handle HTTP errors (e.g., 4xx, 5xx status codes)
+            error_message = f"HTTP error occurred: {http_err}"
+            error_response = (
+                response.json() if response.content else "No response content"
+            )
+            print(error_message)
+            print(f"Error details: {error_response}")
+            raise
+
+        except requests.exceptions.RequestException as req_err:
+            # Handle other types of request exceptions
+            print(f"Request error occurred: {req_err}")
+            raise
+
+        except ValueError as val_err:
+            # Handle issues with decoding JSON
+            print(f"Value error occurred: {val_err}")
+            raise
 
     def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Any:
         return self.request("GET", endpoint, params=params)
