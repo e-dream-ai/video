@@ -7,11 +7,14 @@ load_dotenv()
 BACKEND_URL = os.getenv("BACKEND_URL")
 ADMIN_USER = os.getenv("ADMIN_USER")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")
+
 session = requests.Session()
 session.headers = {
     "Accept": "*/*",
     "Connection": "keep-alive",
     "Content-Type": "application/json",
+    "Authorization": f"Bearer {ADMIN_API_KEY}",
 }
 refresh_token = None
 
@@ -103,5 +106,5 @@ def refresh_token_hook(response, *args, **kwargs):
     return response
 
 
-if __name__ == "__main__":
-    load_api()
+# if __name__ == "__main__":
+#     load_api()

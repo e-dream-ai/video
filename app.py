@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from rq import Queue
 from worker import conn
 from utils.process_video import run_process_video
+from decorators.api_key_decorator import api_key_required
 from config import Env
 
 load_dotenv()
@@ -49,6 +50,7 @@ def get_job_status(job):
 
 
 @app.route("/process-video", methods=["POST"])
+@api_key_required
 def process_video_handler():
     data = request.json
     new_job = q.enqueue(run_process_video, args=(data,))

@@ -1,7 +1,6 @@
 import requests
-from api.api import get_session, get_backend_url, load_api
+from api.api import get_session, get_backend_url
 
-load_api()
 BACKEND_URL = get_backend_url()
 
 
