@@ -14,7 +14,7 @@ session.headers = {
     "Accept": "*/*",
     "Connection": "keep-alive",
     "Content-Type": "application/json",
-    "Authorization": f"Bearer {ADMIN_API_KEY}",
+    "Authorization": f"Api-Key {ADMIN_API_KEY}",
 }
 refresh_token = None
 
