@@ -1,12 +1,14 @@
 import os
 import logging
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, abort, make_response
 from dotenv import load_dotenv
 from rq import Queue
 from worker import conn
 from utils.process_video import run_process_video
 from decorators.api_key_decorator import api_key_required
 from config import Env
+from marshmallow import ValidationError
+from schemas.process_video_schema import VideoProcessSchema
 
 load_dotenv()
 
@@ -53,9 +55,14 @@ def get_job_status(job):
 @api_key_required
 def process_video_handler():
     data = request.json
-    new_job = q.enqueue(run_process_video, args=(data,))
-    output = get_job_status(new_job)
-    return jsonify(output)
+    schema = VideoProcessSchema()
+    try:
+        validated_data = schema.load(data)
+        new_job = q.enqueue(run_process_video, args=(validated_data,))
+        output = get_job_status(new_job)
+        return jsonify(output)
+    except ValidationError as err:
+        return make_response(jsonify({"sucess": False, "message": err.messages}), 400)
 
 
 if __name__ == "__main__":

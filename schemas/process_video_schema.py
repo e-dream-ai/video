@@ -1,0 +1,28 @@
+from marshmallow import Schema, fields, validate, ValidationError
+
+ALLOWED_VIDEO_TYPES = [
+    "mp4",
+    "avi",
+    "mov",
+    "wmv",
+    "mkv",
+    "flv",
+    "mpeg",
+    "webm",
+    "ogv",
+    "3gp",
+    "3g2",
+    "h264",
+    "hevc",
+    "divx",
+    "xvid",
+    "avchd",
+]
+
+
+class VideoProcessSchema(Schema):
+    user_uuid = fields.Str(required=True, validate=[validate.Length(equal=36)])
+    dream_uuid = fields.Str(required=True, validate=[validate.Length(equal=36)])
+    extension = fields.Str(
+        required=True, validate=[validate.OneOf(ALLOWED_VIDEO_TYPES)]
+    )
