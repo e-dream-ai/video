@@ -47,6 +47,7 @@ def run():
     #     playlist_id=32,
     #     file_path="path_to_file/python_video.mp4",
     # )
+    # delete_playlist(32)
 
     # file
     # upload_file("path_to_file/python_video.mp4")

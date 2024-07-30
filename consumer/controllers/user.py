@@ -8,6 +8,11 @@ client = ApiClient()
 
 
 def get_logged_user() -> Optional[ApiResponse[UserResponseWrapper]]:
+    """
+    Retrieves the logged user
+    Returns:
+        Optional[ApiResponse[UserResponseWrapper]]: An `ApiResponse` object containing a `UserResponseWrapper`
+    """
     data = client.get(f"/auth/user")
     response = deserialize_api_response(data, UserResponseWrapper)
     user = response.data.user

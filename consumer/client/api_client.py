@@ -1,11 +1,17 @@
 import requests
 from typing import Optional, Any, Dict
 
+# BACKEND URL TO TARGET
 BACKEND_URL = "http://localhost:8081/api/v1"
+# USER API KEY TO AUTHORIZE BACKEND REQUESTS
 API_KEY = "API_KEY"
 
 
 class ApiClient:
+    """
+    A client for making HTTP requests to a backend API
+    """
+
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update(

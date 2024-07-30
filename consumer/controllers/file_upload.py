@@ -1,5 +1,4 @@
 import requests
-import time
 import math
 from typing import Optional, List
 from dataclasses import asdict
@@ -12,10 +11,7 @@ from models.file_upload_types import (
     CompletedPart,
     RefreshMultipartUploadUrlFormValues,
 )
-from models.dream_types import (
-    DreamResponseWrapper,
-)
-from models.api_types import ApiResponse
+from models.dream_types import DreamResponseWrapper, Dream
 from client.api_client import ApiClient
 from utils.api_utils import deserialize_api_response
 
@@ -26,6 +22,13 @@ max_retries = 3
 
 
 def calculate_total_parts(file_size: int) -> int:
+    """
+    Calculates total upload parts
+    Args:
+        file_size (int): file size
+    Returns:
+        int: total number of parts
+    """
     return max(math.ceil(file_size / part_size), 1)
 
 
@@ -34,6 +37,15 @@ def upload_file_request(
     file_part: bytes,
     file_type: Optional[str] = None,
 ) -> Optional[str]:
+    """
+    Upload file request using `requests`
+    Args:
+        presigned_url (str): presigned s3 url
+        file_part (bytes): file part bytes
+        file_type (str): file type
+    Returns:
+        Optional[str]: etag str
+    """
     headers = {"Content-Type": file_type or ""}
     try:
         response = requests.put(
@@ -54,6 +66,13 @@ def upload_file_request(
 def create_multipart_upload(
     request_data: CreateMultipartUploadFormValues,
 ) -> MultipartUpload:
+    """
+    Creates multipart upload
+    Args:
+        request_data (CreateMultipartUploadFormValues): multipart upload request form
+    Returns:
+        MultipartUpload: multipart upload data
+    """
     request_data_dict = asdict(request_data)
     data = client.post(f"/dream/create-multipart-upload", request_data_dict)
     response = deserialize_api_response(data, MultipartUpload)
@@ -65,6 +84,13 @@ def refresh_multipart_upload_url(
     uuid: str,
     request_data: RefreshMultipartUploadUrlFormValues,
 ) -> RefreshMultipartUpload:
+    """
+    Refreshes multipart upload part
+    Args:
+        request_data (RefreshMultipartUploadUrlFormValues): request multipart upload request form
+    Returns:
+        RefreshMultipartUpload: refresh multipart upload url data
+    """
     request_data_dict = asdict(request_data)
     data = client.post(f"/dream/{uuid}/refresh-multipart-upload-url", request_data_dict)
     response = deserialize_api_response(data, RefreshMultipartUpload)
@@ -80,6 +106,18 @@ def upload_file_part(
     file_part: bytes,
     file_type: Optional[str] = None,
 ) -> Optional[str]:
+    """
+    Refreshes multipart upload part
+    Args:
+        uuid (str): dream uuid
+        upload_id (str): generated multipart upload id
+        presigned_url (str): presigned url to target request
+        part_number (int): part number
+        file_part (bytes): file part bytes
+        file_type (str): file type
+    Returns:
+        str: etag str
+    """
     attempt = 0
     url = presigned_url
     while attempt < max_retries:
@@ -109,19 +147,35 @@ def complete_multipart_upload(
     uuid: str,
     request_data: CompleteMultipartUploadFormValues,
 ) -> DreamResponseWrapper:
+    """
+    Completes multipart upload
+    Args:
+        uuid (str): dream uuid
+        request_data (CompleteMultipartUploadFormValues): complete multipart upload request form
+    Returns:
+        DreamResponseWrapper: dream response after completing upload
+    """
     request_data_dict = asdict(request_data)
     data = client.post(f"/dream/{uuid}/complete-multipart-upload", request_data_dict)
     response = deserialize_api_response(data, DreamResponseWrapper)
     return response.data
 
 
-def upload_file(file_path: str):
+def upload_file(file_path: str) -> Dream:
+    """
+    Complete function to upload file to s3 creating a dream on process
+    Args:
+        file_path (str): file path
+    Returns:
+        Dream: created dream after completing upload
+    """
     path = Path(file_path)
     file_name = path.name
     file_extension = path.suffix.lstrip(".")
     file_size = path.stat().st_size
     total_parts = calculate_total_parts(file_size)
 
+    # create multipart upload
     multipart_upload: MultipartUpload = create_multipart_upload(
         CreateMultipartUploadFormValues(
             name=file_name, extension=file_extension, nsfw=False, parts=total_parts
@@ -138,11 +192,12 @@ def upload_file(file_path: str):
     bytes_uploaded = 0
 
     with open(file_path, "rb") as file:
+        # iterates urls to upload each part and obtaining each etag
         for index, url in enumerate(urls):
             part_number = index + 1
             part_data = file.read(part_size)
 
-            # Exit the loop if read all the data
+            # exit the loop if read all the data
             if not part_data:
                 break
 
@@ -160,6 +215,7 @@ def upload_file(file_path: str):
             progress_percentage = (bytes_uploaded / file_size) * 100
             print(f"Upload progress: {progress_percentage:.2f}%")
 
+    # complete upload
     completed_upload = complete_multipart_upload(
         dream.uuid,
         CompleteMultipartUploadFormValues(
