@@ -15,7 +15,6 @@ from models.dream_types import DreamResponseWrapper, Dream
 from client.api_client import ApiClient
 from utils.api_utils import deserialize_api_response
 
-client = ApiClient()
 part_size = 1024 * 1024 * 200  # 200 MB
 retry_delay: float = 0.2
 max_retries = 3
@@ -73,6 +72,7 @@ def create_multipart_upload(
     Returns:
         MultipartUpload: multipart upload data
     """
+    client = ApiClient.get_instance()
     request_data_dict = asdict(request_data)
     data = client.post(f"/dream/create-multipart-upload", request_data_dict)
     response = deserialize_api_response(data, MultipartUpload)
@@ -91,6 +91,7 @@ def refresh_multipart_upload_url(
     Returns:
         RefreshMultipartUpload: refresh multipart upload url data
     """
+    client = ApiClient.get_instance()
     request_data_dict = asdict(request_data)
     data = client.post(f"/dream/{uuid}/refresh-multipart-upload-url", request_data_dict)
     response = deserialize_api_response(data, RefreshMultipartUpload)
@@ -155,6 +156,7 @@ def complete_multipart_upload(
     Returns:
         DreamResponseWrapper: dream response after completing upload
     """
+    client = ApiClient.get_instance()
     request_data_dict = asdict(request_data)
     data = client.post(f"/dream/{uuid}/complete-multipart-upload", request_data_dict)
     response = deserialize_api_response(data, DreamResponseWrapper)

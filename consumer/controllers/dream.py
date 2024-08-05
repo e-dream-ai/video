@@ -9,8 +9,6 @@ from models.dream_types import (
 )
 from utils.api_utils import deserialize_api_response
 
-client = ApiClient()
-
 
 def get_dream(uuid: str) -> Optional[ApiResponse[DreamResponseWrapper]]:
     """
@@ -20,6 +18,7 @@ def get_dream(uuid: str) -> Optional[ApiResponse[DreamResponseWrapper]]:
     Returns:
         Optional[ApiResponse[DreamResponseWrapper]]: An `ApiResponse` object containing a `DreamResponseWrapper`
     """
+    client = ApiClient.get_instance()
     data = client.get(f"/dream/{uuid}")
     response = deserialize_api_response(data, DreamResponseWrapper)
     dream = response.data.dream
@@ -37,6 +36,7 @@ def update_dream(
     Returns:
         Optional[ApiResponse[DreamResponseWrapper]]: An `ApiResponse` object containing a `DreamResponseWrapper`
     """
+    client = ApiClient.get_instance()
     request_data_dict = asdict(request_data)
     data = client.put(f"/dream/{uuid}", request_data_dict)
     response = deserialize_api_response(data, DreamResponseWrapper)
@@ -52,6 +52,7 @@ def get_dream_vote(uuid: str) -> Optional[ApiResponse[DreamVoteResponseWrapper]]
     Returns:
         Optional[ApiResponse[DreamVoteResponseWrapper]]: An `ApiResponse` object containing a `DreamVoteResponseWrapper`
     """
+    client = ApiClient.get_instance()
     data = client.get(f"/dream/{uuid}/vote")
     response = deserialize_api_response(data, DreamVoteResponseWrapper)
     vote = response.data.vote
@@ -66,6 +67,7 @@ def upvote_dream(uuid: str) -> Optional[ApiResponse[DreamResponseWrapper]]:
     Returns:
         Optional[ApiResponse[DreamVoteResponseWrapper]]: An `ApiResponse` object containing a `DreamVoteResponseWrapper`
     """
+    client = ApiClient.get_instance()
     data = client.put(f"/dream/{uuid}/upvote")
     response = deserialize_api_response(data, DreamResponseWrapper)
     dream = response.data.dream
@@ -80,6 +82,7 @@ def downvote_dream(uuid: str) -> Optional[ApiResponse[DreamResponseWrapper]]:
     Returns:
         Optional[ApiResponse[DreamVoteResponseWrapper]]: An `ApiResponse` object containing a `DreamVoteResponseWrapper`
     """
+    client = ApiClient.get_instance()
     data = client.put(f"/dream/{uuid}/downvote")
     response = deserialize_api_response(data, DreamResponseWrapper)
     dream = response.data.dream
@@ -94,6 +97,7 @@ def delete_dream(uuid: str) -> Optional[ApiResponse[ApiResponse]]:
     Returns:
         Optional[ApiResponse]: An `ApiResponse` object
     """
+    client = ApiClient.get_instance()
     data = client.delete(f"/dream/{uuid}")
     response = deserialize_api_response(data, ApiResponse)
     return response.success

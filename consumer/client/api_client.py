@@ -1,27 +1,50 @@
 import requests
 from typing import Optional, Any, Dict
 
-# BACKEND URL TO TARGET
-BACKEND_URL = "http://localhost:8081/api/v1"
-# USER API KEY TO AUTHORIZE BACKEND REQUESTS
-API_KEY = "API_KEY"
-
 
 class ApiClient:
     """
     A client for making HTTP requests to a backend API
+    Ensures that only one instance of ApiClient can exist (singleton pattern)
     """
 
-    def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update(
-            {
-                "Accept": "*/*",
-                "Connection": "keep-alive",
-                "Content-Type": "application/json",
-                "Authorization": f"Api-Key {API_KEY}",
-            }
-        )
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(ApiClient, cls).__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(
+        self, backend_url: Optional[str] = None, api_key: Optional[str] = None
+    ):
+        # Ensure the constructor is only run once
+        if not self._initialized:
+            if backend_url is None or api_key is None:
+                raise ValueError(
+                    "backend_url and api_key must be provided for the first initialization"
+                )
+            self.backend_url = backend_url
+            self.api_key = api_key
+            self.session = requests.Session()
+            self.session.headers.update(
+                {
+                    "Accept": "*/*",
+                    "Connection": "keep-alive",
+                    "Content-Type": "application/json",
+                    "Authorization": f"Api-Key {self.api_key}",
+                }
+            )
+            self.initialized = True
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            raise ValueError(
+                "ApiClient is not initialized, call ApiClient(backend_url, api_key) first"
+            )
+        return cls._instance
 
     def request(
         self,
@@ -31,7 +54,7 @@ class ApiClient:
         data: Optional[Dict[str, Any]] = None,
     ) -> Any:
         try:
-            url = f"{BACKEND_URL}{endpoint}"
+            url = f"{self.backend_url}{endpoint}"
             filtered_data = {k: v for k, v in (data or {}).items() if v is not None}
             response = self.session.request(
                 method, url, params=params, json=filtered_data
@@ -70,3 +93,14 @@ class ApiClient:
 
     def delete(self, endpoint: str, data: Optional[Dict[str, Any]] = None) -> Any:
         return self.request("DELETE", endpoint, data=data)
+
+
+# Module-level variable to hold the initialized ApiClient instance
+api_client_instance = None
+
+
+def initialize_api_client(backend_url: str, api_key: str):
+    global api_client_instance
+    if api_client_instance is None:
+        api_client_instance = ApiClient(backend_url=backend_url, api_key=api_key)
+    return api_client_instance

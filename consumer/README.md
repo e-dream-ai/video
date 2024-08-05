@@ -18,12 +18,14 @@ API_KEY = "http://localhost:8081/api/v1"
 
 ### setup client
 
-Import ApiClient and create an instance to connect with backend
+Initialize ApiClient and create a single instance to connect with backend, provide backend_url and api_key to ApiClient initialize function, an example on [run.py](run.py) file.
 
 ```python
-from client.api_client import ApiClient
+from client.api_client import initialize_api_client
 
-client = ApiClient()
+initialize_api_client(
+    backend_url="http://localhost:8081/api/v1", api_key="your_api_key"
+)
 ```
 
 ### run

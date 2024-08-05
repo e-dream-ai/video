@@ -11,8 +11,6 @@ from controllers.file_upload import upload_file
 from utils.api_utils import deserialize_api_response
 from dataclasses import asdict
 
-client = ApiClient()
-
 
 def get_playlist(id: int) -> Optional[ApiResponse[PlaylistResponseWrapper]]:
     """
@@ -22,6 +20,7 @@ def get_playlist(id: int) -> Optional[ApiResponse[PlaylistResponseWrapper]]:
     Returns:
         Optional[ApiResponse[PlaylistResponseWrapper]]: An `ApiResponse` object containing a `PlaylistResponseWrapper`
     """
+    client = ApiClient.get_instance()
     data = client.get(f"/playlist/{id}")
     response = deserialize_api_response(data, PlaylistResponseWrapper)
     playlist = response.data.playlist
@@ -39,6 +38,7 @@ def update_playlist(
     Returns:
         Optional[ApiResponse[PlaylistResponseWrapper]]: An `ApiResponse` object containing a `PlaylistResponseWrapper`
     """
+    client = ApiClient.get_instance()
     request_data_dict = asdict(request_data)
     data = client.put(f"/playlist/{playlist_id}", request_data_dict)
     response = deserialize_api_response(data, PlaylistResponseWrapper)
@@ -58,6 +58,7 @@ def add_item_to_playlist(
     Returns:
         Optional[ApiResponse[PlaylistResponseWrapper]]: An `ApiResponse` object containing a `PlaylistResponseWrapper`
     """
+    client = ApiClient.get_instance()
     form = {"type": type.value, "id": id}
     data = client.put(f"/playlist/{playlist_id}/add-item", form)
     response = deserialize_api_response(data, PlaylistResponseWrapper)
@@ -74,6 +75,7 @@ def add_file_to_playlist(playlist_id: int, file_path: str) -> Optional[Dream]:
     Returns:
         Optional[Dream]: Created Dream
     """
+    client = ApiClient.get_instance()
     dream = upload_file(file_path)
     add_item_to_playlist(
         playlist_id=playlist_id, type=PlaylistItemType.DREAM, id=dream.id
@@ -93,6 +95,7 @@ def delete_item_from_playlist(
     Returns:
         Optional[ApiResponse]: An `ApiResponse` object
     """
+    client = ApiClient.get_instance()
     data = client.delete(f"/playlist/{playlist_id}/remove-item/{playlist_item_id}")
     response = deserialize_api_response(data, ApiResponse)
     return response.success
@@ -106,6 +109,7 @@ def delete_playlist(playlist_id: int) -> Optional[ApiResponse]:
     Returns:
         Optional[ApiResponse]: An `ApiResponse` object
     """
+    client = ApiClient.get_instance()
     data = client.delete(f"/playlist/{playlist_id}")
     response = deserialize_api_response(data, ApiResponse)
     return response.success

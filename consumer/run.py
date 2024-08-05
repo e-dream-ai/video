@@ -1,3 +1,4 @@
+from client.api_client import initialize_api_client
 from controllers.user import get_logged_user
 from controllers.dream import (
     get_dream,
@@ -21,8 +22,14 @@ from models.dream_types import UpdateDreamRequest
 
 
 def run():
+    # Initialize ApiClient with backend_url and api_key instance
+    initialize_api_client(
+        backend_url="http://localhost:8081/api/v1", api_key="your_api_key"
+    )
+
     # user
-    # get_logged_user()
+    # user = get_logged_user()
+    # print(user)
 
     # dream
     # get_dream("02ff0d31-7b35-4e6a-ac18-5b114897aa0b")
@@ -54,4 +61,5 @@ def run():
     pass
 
 
-run()
+if __name__ == "__main__":
+    run()
