@@ -43,18 +43,24 @@ def run():
     # delete_dream("02ff0d31-7b35-4e6a-ac18-5b114897aa0b")
 
     # playlist
-    # get_playlist(32)
+    # get_playlist("b9a643bd-f6d0-48ac-ba43-b10dcf4ecda4")
     # update_playlist(
-    #     32,
+    #     "b9a643bd-f6d0-48ac-ba43-b10dcf4ecda4",
     #     request_data=UpdatePlaylistRequest(name="name python"),
     # )
-    # add_item_to_playlist(playlistId=32, type=PlaylistItemType.DREAM, id=357)
-    # delete_item_from_playlist(playlist_id=32, playlist_item_id=206)
+    # add_item_to_playlist(
+    #     playlist_uuid="b9a643bd-f6d0-48ac-ba43-b10dcf4ecda4",
+    #     type=PlaylistItemType.DREAM,
+    #     item_uuid="d20cad5c-b294-4094-a19d-f5ab043980ae",
+    # )
+    # delete_item_from_playlist(
+    #     uuid="b9a643bd-f6d0-48ac-ba43-b10dcf4ecda4", playlist_item_id=324
+    # )
     # add_file_to_playlist(
-    #     playlist_id=32,
+    #     uuid="b9a643bd-f6d0-48ac-ba43-b10dcf4ecda4",
     #     file_path="path_to_file/python_video.mp4",
     # )
-    # delete_playlist(32)
+    # delete_playlist("b9a643bd-f6d0-48ac-ba43-b10dcf4ecda4")
 
     # file
     # upload_file("path_to_file/python_video.mp4")

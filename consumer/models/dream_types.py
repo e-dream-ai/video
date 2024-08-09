@@ -18,11 +18,11 @@ class DreamStatusType(Enum):
 @dataclass
 class Dream:
     id: int
-    name: str
-    activityLevel: int
-    thumbnail: str
     user: User
     uuid: str
+    name: Optional[str] = None
+    thumbnail: Optional[str] = None
+    activityLevel: Optional[int] = 0
     original_video: Optional[str] = None
     video: Optional[str] = None
     featureRank: Optional[int] = None

@@ -30,6 +30,7 @@ class PlaylistItem:
 @dataclass
 class Playlist:
     id: int
+    uuid: str
     name: str
     thumbnail: str
     updated_at: str
