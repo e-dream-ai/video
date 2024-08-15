@@ -32,6 +32,18 @@ Install [pyenv](https://github.com/pyenv/pyenv) and config python 3.12.x, on mac
 brew install pyenv
 ```
 
+#### pyenv setup
+
+```bash
+pyenv virtualenv 3.12.2 edream_video
+```
+
+```bash
+pyenv activate edream_video
+```
+
+pip install -e .
+
 Install [redis](https://redis.io/docs/install/install-redis/), on macOS
 
 ```bash
@@ -49,6 +61,29 @@ Install requirements
 ```bash
 pip install -r requirements.txt
 ```
+
+#### install edream sdk
+
+Init
+
+```bash
+git submodule init
+```
+
+Update
+
+```bash
+git submodule update --remote
+```
+
+Install locally
+
+```bash
+cd python-api
+pip install -e .
+```
+
+#### Run
 
 Run worker
 
