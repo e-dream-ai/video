@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, abort, make_response
 from dotenv import load_dotenv
 from rq import Queue
 from worker import conn
-from utils.process_video import run_process_video
+from utils.process_video import run_video_ingestion
 from decorators.api_key_decorator import api_key_required
 from config import Env
 from marshmallow import ValidationError
@@ -58,7 +58,7 @@ def process_video_handler():
     schema = VideoProcessSchema()
     try:
         validated_data = schema.load(data)
-        new_job = q.enqueue(run_process_video, args=(validated_data,))
+        new_job = q.enqueue(run_video_ingestion, args=(validated_data,))
         output = get_job_status(new_job)
         return jsonify(output)
     except ValidationError as err:

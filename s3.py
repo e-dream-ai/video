@@ -1,12 +1,12 @@
 import os
 import logging
 import boto3
+from typing import Optional
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DEFAULT_CPU_COUNT = 4
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 
@@ -19,7 +19,7 @@ s3_client = boto3.client(
 BUCKET_NAME = os.getenv("AWS_BUCKET_NAME")
 
 
-def download_file(file_name, object_name=None):
+def download_file(file_name: str, object_name: Optional[str]):
     if object_name is None:
         object_name = os.path.basename(file_name)
 
@@ -31,7 +31,7 @@ def download_file(file_name, object_name=None):
     return True
 
 
-def upload_file(file_name, object_name=None):
+def upload_file(file_name: str, object_name: Optional[str]):
     """Upload a file to an S3 bucket
 
     :param file_name: File to upload
@@ -48,7 +48,7 @@ def upload_file(file_name, object_name=None):
 
     # Upload the file
     try:
-        response = s3_client.upload_file(
+        s3_client.upload_file(
             file_name, BUCKET_NAME, object_name, ExtraArgs={"ACL": ACL}
         )
     except ClientError as e:
