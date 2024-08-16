@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-from s3 import download_file, upload_file
 from .ffmpeg_utils import (
     convert_video,
     generate_thumbnail,
@@ -35,7 +34,7 @@ def process_video(user_uuid, dream_uuid, extension):
     Executes process video
     """
 
-    download_file(
+    edream_client.download_file(
         file_name=f"./assets/{dream_uuid}/{dream_uuid}.{extension}",
         object_name=f"{user_uuid}/{dream_uuid}/{dream_uuid}.{extension}",
     )
@@ -53,12 +52,12 @@ def process_video(user_uuid, dream_uuid, extension):
     )
 
     # Upload MP4 video file
-    upload_file(
+    edream_client.upload_file(
         file_name=f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
         object_name=f"{user_uuid}/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
     )
     # upload thumbnail file
-    upload_file(
+    edream_client.upload_file(
         file_name=f"./assets/{dream_uuid}/{dream_uuid}.png",
         object_name="{user_uuid}/{dream_uuid}/thumbnails/{dream_uuid}.png",
     )
@@ -75,7 +74,7 @@ def process_filmstrip(user_uuid, dream_uuid, video_path, filmstrip_frames_array)
     )
 
     for frame_number in filmstrip_frames_array:
-        upload_file(
+        edream_client.upload_file(
             file_name=f"./assets/{dream_uuid}/filmstrip/frame-{frame_number}.jpg",
             object_name=f"{user_uuid}/{dream_uuid}/filmstrip/frame-{frame_number}.jpg",
         )
