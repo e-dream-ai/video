@@ -16,7 +16,8 @@ from .file_utils import (
 
 # from api.dream_api import set_dream_processing, set_dream_processed, set_dream_failed
 from edream_sdk.client import create_edream_client
-from edream_sdk.models.dream_types import SetDreamProcessedRequest
+from edream_sdk.models.dream_types import SetDreamProcessedRequest, DreamFileType
+from edream_sdk.models.file_upload_types import UploadFileOptions
 
 load_dotenv()
 
@@ -34,9 +35,12 @@ def process_video(user_uuid, dream_uuid, extension):
     Executes process video
     """
 
+    dream = edream_client.get_dream(uuid=dream_uuid)
+    dream_url = dream.original_video
+
     edream_client.download_file(
-        file_name=f"./assets/{dream_uuid}/{dream_uuid}.{extension}",
-        object_name=f"{user_uuid}/{dream_uuid}/{dream_uuid}.{extension}",
+        url=dream_url,
+        file_path=f"./assets/{dream_uuid}/{dream_uuid}.{extension}",
     )
 
     # Runs video ingestion
@@ -53,13 +57,16 @@ def process_video(user_uuid, dream_uuid, extension):
 
     # Upload MP4 video file
     edream_client.upload_file(
-        file_name=f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
-        object_name=f"{user_uuid}/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
+        file_path=f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
+        type=DreamFileType.DREAM,
+        options=UploadFileOptions(uuid=dream_uuid, processed=True),
     )
+
     # upload thumbnail file
     edream_client.upload_file(
-        file_name=f"./assets/{dream_uuid}/{dream_uuid}.png",
-        object_name="{user_uuid}/{dream_uuid}/thumbnails/{dream_uuid}.png",
+        file_path=f"./assets/{dream_uuid}/{dream_uuid}.png",
+        type=DreamFileType.THUMBNAIL,
+        options=UploadFileOptions(uuid=dream_uuid),
     )
 
 
@@ -75,8 +82,9 @@ def process_filmstrip(user_uuid, dream_uuid, video_path, filmstrip_frames_array)
 
     for frame_number in filmstrip_frames_array:
         edream_client.upload_file(
-            file_name=f"./assets/{dream_uuid}/filmstrip/frame-{frame_number}.jpg",
-            object_name=f"{user_uuid}/{dream_uuid}/filmstrip/frame-{frame_number}.jpg",
+            file_path=f"./assets/{dream_uuid}/filmstrip/frame-{frame_number}.jpg",
+            type=DreamFileType.FILMSTRIP,
+            options=UploadFileOptions(uuid=dream_uuid, frame_number=frame_number),
         )
 
 
