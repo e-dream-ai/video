@@ -122,11 +122,11 @@ def run_video_ingestion(data):
     edream_client.set_dream_processed(
         uuid=dream_uuid,
         request_data=SetDreamProcessedRequest(
-            processed_video_size=processed_video_size,
-            processed_video_frames=processed_video_frames,
-            process_video_fps=process_video_fps,
-            activity_level=30 / process_video_fps,
-            filmstrip_frames_array=filmstrip_frames_array,
+            processedVideoSize=processed_video_size,
+            processedVideoFrames=processed_video_frames,
+            processedVideoFPS=process_video_fps,
+            activityLevel=30 / process_video_fps,
+            filmstrip=filmstrip_frames_array,
         ),
     )
 
