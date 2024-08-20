@@ -111,13 +111,13 @@ On macOS, try disabling the 'AirPlay Receiver' service from System Preferences -
 ##### Adding heroku ffmpeg buildpacks to video service
 
 ```bash
-heroku buildpacks:add --index 1 https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git -a video-server
+heroku buildpacks:add --index 1 https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git -a video-service
 ```
 
 ##### Adding heroku redis add-on to video service
 
 ```bash
-heroku addons:create rediscloud:30 -a video-server
+heroku addons:create rediscloud:30 -a video-service
 ```
 
 ##### Adding worker to video service
@@ -133,6 +133,20 @@ Add Procfile and make sure both dynos are running
 ```
 web: gunicorn app:app
 worker: python worker.py
+```
+
+#### Adding python-api sdk to video service
+
+Installing python-api is different from local, follow next steps to set up automatic installation. Follow this [documentation](https://elements.heroku.com/buildpacks/debitoor/ssh-private-key-buildpack).
+
+```bash
+heroku buildpacks:set --index 1 https://github.com/debitoor/ssh-private-key-buildpack.git -a video-service
+```
+
+Set `SSH_KEY`, replace `cat path/to/your/keys/id_rsa` with edream id_rsa location (github deploy key).
+
+```bash
+heroku config:set SSH_KEY=$(cat path/to/your/keys/id_rsa | base64) -a video-service
 ```
 
 #### Deploy
