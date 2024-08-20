@@ -59,9 +59,7 @@ def process_video_handler():
     try:
         validated_data = schema.load(data)
         new_job = q.enqueue(run_video_ingestion, args=(validated_data,))
-        print(validated_data)
         output = get_job_status(new_job)
-        print(output)
         return jsonify(output)
     except ValidationError as err:
         return make_response(jsonify({"sucess": False, "message": err.messages}), 400)
