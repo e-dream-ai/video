@@ -20,29 +20,31 @@
 
 ### Locally
 
+#### Install FFMPEG
+
 Install [ffmpeg](https://ffmpeg.org/download.html), on macOS
 
 ```bash
 brew install ffmpeg
 ```
 
-Install [pyenv](https://github.com/pyenv/pyenv) and config python 3.12.x, on macOS
+#### Install pyenv-virtualenv (recommended)
 
-```bash
-brew install pyenv
-```
+Install pyenv-virtualenv following [this](https://github.com/pyenv/pyenv-virtualenv?tab=readme-ov-file#installation) documentation and config python 3.12.x
 
-#### pyenv setup
+##### create pyenv
 
 ```bash
 pyenv virtualenv 3.12.2 edream_video
 ```
 
+##### activate pyenv
+
 ```bash
 pyenv activate edream_video
 ```
 
-pip install -e .
+#### Install redis
 
 Install [redis](https://redis.io/docs/install/install-redis/), on macOS
 
@@ -56,7 +58,7 @@ Start redis service on mac
 brew services start redis
 ```
 
-Install requirements
+#### Install requirements
 
 ```bash
 pip install -r requirements.txt
@@ -64,13 +66,13 @@ pip install -r requirements.txt
 
 #### install edream sdk
 
-Init
+Fetch submodule with init
 
 ```bash
 git submodule init
 ```
 
-Update
+Update (every time that is needed)
 
 ```bash
 git submodule update --remote
@@ -79,22 +81,23 @@ git submodule update --remote
 Install locally
 
 ```bash
-cd python-api
-pip install -e .
+pip install -e python-api
 ```
 
 #### Run
 
-Run worker
-
-```bash
- python worker.py
-```
+On two different terminals, run flask server and worker
 
 Run flask app on other terminal
 
 ```bash
  flask run
+```
+
+Run worker
+
+```bash
+ python worker.py
 ```
 
 Now flask server is running and waiting for requests to process videos
@@ -108,45 +111,57 @@ On macOS, try disabling the 'AirPlay Receiver' service from System Preferences -
 
 #### Config
 
-##### Adding heroku ffmpeg buildpacks to video service
+These settings are already in place for stage/production environments, just follow the steps if you need to set up a new environment or if you need to update any settings.
+
+##### FFMPEG
+
+Adding heroku ffmpeg buildpacks to video service
 
 ```bash
 heroku buildpacks:add --index 1 https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git -a video-service
 ```
 
-##### Adding heroku redis add-on to video service
+##### Redis
+
+Adding heroku redis add-on to video service
 
 ```bash
 heroku addons:create rediscloud:30 -a video-service
 ```
 
-##### Adding worker to video service
+##### python-api sdk
+
+Installing python-api is different from local, heroku needs to set a ssh-private-key to install edream_sdk package from [requirements.txt](requirements.txt), follow next steps to set up automatic installation. This [documentation](https://elements.heroku.com/buildpacks/debitoor/ssh-private-key-buildpack) helps setup ssh-private-key-buildpack.
+
+##### ssh-private-key-buildpack
+
+```bash
+heroku buildpacks:set --index 1 https://github.com/debitoor/ssh-private-key-buildpack.git -a video-service
+```
+
+Set `SSH_KEY`, replace `cat path/to/your/keys/id_rsa` with edream id_rsa location (github deploy key). Deploy key should be setup on python-api repo.
+
+```bash
+heroku config:set SSH_KEY=$(cat path/to/your/keys/id_rsa | base64) -a video-service
+```
+
+##### Worker
+
+Adding worker to video service
 
 ```bash
 heroku ps:scale worker=1 -a video-service
 ```
 
-##### Adding Procfile
+##### Procfile
+
+Adding Procfile
 
 Add Procfile and make sure both dynos are running
 
 ```
 web: gunicorn app:app
 worker: python worker.py
-```
-
-#### Adding python-api sdk to video service
-
-Installing python-api is different from local, follow next steps to set up automatic installation. Follow this [documentation](https://elements.heroku.com/buildpacks/debitoor/ssh-private-key-buildpack).
-
-```bash
-heroku buildpacks:set --index 1 https://github.com/debitoor/ssh-private-key-buildpack.git -a video-service
-```
-
-Set `SSH_KEY`, replace `cat path/to/your/keys/id_rsa` with edream id_rsa location (github deploy key).
-
-```bash
-heroku config:set SSH_KEY=$(cat path/to/your/keys/id_rsa | base64) -a video-service
 ```
 
 #### Deploy
