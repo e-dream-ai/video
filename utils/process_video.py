@@ -30,7 +30,7 @@ edream_client = create_edream_client(backend_url=BACKEND_URL, api_key=BACKEND_AP
 processed_video_suffix = "processed"
 
 
-def process_video(user_uuid, dream_uuid, extension):
+def process_video(dream_uuid, extension):
     """
     Executes process video
     """
@@ -70,7 +70,7 @@ def process_video(user_uuid, dream_uuid, extension):
     )
 
 
-def process_filmstrip(user_uuid, dream_uuid, video_path, filmstrip_frames_array):
+def process_filmstrip(dream_uuid, video_path, filmstrip_frames_array):
     """
     Executes process filmstrip
     """
@@ -92,7 +92,6 @@ def run_video_ingestion(data):
     """
     Runs video ingestion process
     """
-    user_uuid = data["user_uuid"]
     dream_uuid = data["dream_uuid"]
     extension = data["extension"]
 
@@ -100,7 +99,7 @@ def run_video_ingestion(data):
     create_process_directory(dream_uuid=dream_uuid)
 
     try:
-        process_video(user_uuid, dream_uuid, extension)
+        process_video(dream_uuid, extension)
     except Exception as e:
         print(e)
         remove_process_directory(dream_uuid)
@@ -116,7 +115,7 @@ def run_video_ingestion(data):
     filmstrip_frames_array = get_filmstrip_array(total_frames=processed_video_frames)
 
     process_filmstrip(
-        user_uuid, dream_uuid, processed_video_path, filmstrip_frames_array
+        dream_uuid, processed_video_path, filmstrip_frames_array
     )
 
     edream_client.set_dream_processed(

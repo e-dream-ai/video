@@ -21,7 +21,6 @@ ALLOWED_VIDEO_TYPES = [
 
 
 class VideoProcessSchema(Schema):
-    user_uuid = fields.Str(required=True, validate=[validate.Length(equal=36)])
     dream_uuid = fields.Str(required=True, validate=[validate.Length(equal=36)])
     extension = fields.Str(
         required=True, validate=[validate.OneOf(ALLOWED_VIDEO_TYPES)]
