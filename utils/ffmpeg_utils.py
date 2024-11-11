@@ -18,7 +18,7 @@ def get_hardware_acceleration_codec():
         sys.exit(1)
 
 
-def convert_video(input_file: str, output_file: str):
+def convert_video(input_file: str, output_file: str) -> str | None:
     """
     Executes video ingestion
     """
@@ -41,11 +41,28 @@ def convert_video(input_file: str, output_file: str):
         "passthrough",
         "-y",
         output_file,
+        "-f",
+        "md5",
+        "-",
     ]
 
     try:
-        subprocess.call(cmd)
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+
+        # Get output and errors
+        stdout, stderr = process.communicate()
+
+        if process.returncode != 0:
+            raise Exception(f"FFmpeg error: {stderr}")
+
         print(f"Success: {input_file} converted to {output_file}")
+
+        # extract MD5 from output
+        md5 = stdout.strip().split("=")[1]
+
+        return md5
     except subprocess.CalledProcessError as e:
         print(f"Error: FFmpeg returned a non-zero exit code ({e.returncode})")
 

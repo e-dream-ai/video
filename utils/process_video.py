@@ -44,7 +44,7 @@ def process_video(dream_uuid, extension):
     )
 
     # Runs video ingestion
-    convert_video(
+    md5 = convert_video(
         input_file=f"./assets/{dream_uuid}/{dream_uuid}.{extension}",
         output_file=f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
     )
@@ -68,6 +68,8 @@ def process_video(dream_uuid, extension):
         type=DreamFileType.THUMBNAIL,
         options=UploadFileOptions(uuid=dream_uuid),
     )
+
+    return md5
 
 
 def process_filmstrip(dream_uuid, video_path, filmstrip_frames_array):
@@ -99,7 +101,7 @@ def run_video_ingestion(data):
     create_process_directory(dream_uuid=dream_uuid)
 
     try:
-        process_video(dream_uuid, extension)
+        md5 = process_video(dream_uuid, extension)
     except Exception as e:
         print(e)
         remove_process_directory(dream_uuid)
@@ -114,9 +116,7 @@ def run_video_ingestion(data):
     process_video_fps = get_video_fps(processed_video_path)
     filmstrip_frames_array = get_filmstrip_array(total_frames=processed_video_frames)
 
-    process_filmstrip(
-        dream_uuid, processed_video_path, filmstrip_frames_array
-    )
+    process_filmstrip(dream_uuid, processed_video_path, filmstrip_frames_array)
 
     edream_client.set_dream_processed(
         uuid=dream_uuid,
@@ -126,6 +126,7 @@ def run_video_ingestion(data):
             processedVideoFPS=process_video_fps,
             activityLevel=30 / process_video_fps,
             filmstrip=filmstrip_frames_array,
+            md5=md5,
         ),
     )
 
