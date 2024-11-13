@@ -41,26 +41,28 @@ def convert_video(input_file: str, output_file: str) -> str | None:
         "passthrough",
         "-y",
         output_file,
-        "-f",
-        "md5",
-        "-",
     ]
 
     try:
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
-
-        # Get output and errors
-        stdout, stderr = process.communicate()
-
-        if process.returncode != 0:
-            raise Exception(f"FFmpeg error: {stderr}")
-
+        process.communicate()
         print(f"Success: {input_file} converted to {output_file}")
 
+        md5_cmd = ["md5sum", output_file]
+        md5_process = subprocess.Popen(
+            md5_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+
+        # Get output and errors
+        stdout, stderr = md5_process.communicate()
+
+        if md5_process.returncode != 0:
+            raise Exception(f"Md5 error: {stderr}")
+
         # extract MD5 from output
-        md5 = stdout.strip().split("=")[1]
+        md5 = stdout.split()[0]
 
         return md5
     except subprocess.CalledProcessError as e:
