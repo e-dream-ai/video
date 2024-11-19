@@ -169,8 +169,10 @@ def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    # filter string for selecting frames
-    select_frames = "+".join([f"eq(n\\,{frame})" for frame in filmstrip_frames_array])
+    # filter string for selecting frames to capture having 1-based frames
+    select_frames = "+".join(
+        [f"eq(n\\,{frame - 1})" for frame in filmstrip_frames_array]
+    )
     temp_output_pattern = os.path.join(output_dir, "temp_frame-%d.jpg")
 
     # ffmpeg command
@@ -187,7 +189,9 @@ def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array)
 
     try:
         subprocess.call(cmd)
-        # rename the frames to match the frame numbers
+        # rename the frames to match the frame numbers having 1-based
+        # ffmpeg output will be 1 to n, regardless of the frames specified
+        # so need to be renamed for file output with correct 1-based frame name
         for i, frame_number in enumerate(filmstrip_frames_array, start=1):
             temp_frame_file = os.path.join(output_dir, f"temp_frame-{i}.jpg")
             final_frame_file = os.path.join(output_dir, f"frame-{frame_number}.jpg")
