@@ -25,3 +25,7 @@ class VideoProcessSchema(Schema):
     extension = fields.Str(
         required=True, validate=[validate.OneOf(ALLOWED_VIDEO_TYPES)]
     )
+
+
+class VideoMd5Schema(Schema):
+    dream_uuid = fields.Str(required=True, validate=[validate.Length(equal=36)])

@@ -1,6 +1,8 @@
 from flask import request, jsonify
 import os
 from dotenv import load_dotenv
+from functools import wraps
+
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
@@ -8,6 +10,7 @@ API_KEY = os.getenv("API_KEY")
 
 # Decorator to verify apikey
 def api_key_required(f):
+    @wraps(f)  # Add this line
     def decorator(*args, **kwargs):
         # get apikey from headers
         auth_header = request.headers.get("Authorization")

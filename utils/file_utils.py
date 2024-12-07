@@ -1,5 +1,7 @@
 import os
 
+processed_video_suffix = "processed"
+
 
 def get_file_size(file_path: str) -> int | None:
     """
@@ -10,6 +12,15 @@ def get_file_size(file_path: str) -> int | None:
         return size_bytes
     except FileNotFoundError:
         return None
+
+
+def get_file_extension(file_name):
+    if not file_name:
+        return ""
+    dot_index = file_name.rfind(".")
+    if dot_index != -1:
+        return file_name[dot_index + 1 :].lower()
+    return ""
 
 
 def create_process_directory(dream_uuid: str):
@@ -29,14 +40,15 @@ def remove_process_directory(dream_uuid: str):
 
     # filmstrip directory
     filmstrip_directory_path = f"./assets/{dream_uuid}/filmstrip"
-    filmstrip_files = os.listdir(filmstrip_directory_path)
-
-    for file in filmstrip_files:
-        file_path = os.path.join(filmstrip_directory_path, file)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
 
     if os.path.exists(filmstrip_directory_path):
+        filmstrip_files = os.listdir(filmstrip_directory_path)
+
+        for file in filmstrip_files:
+            file_path = os.path.join(filmstrip_directory_path, file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+
         os.removedirs(filmstrip_directory_path)
 
     # dream directory

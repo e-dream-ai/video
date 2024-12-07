@@ -9,25 +9,14 @@ from .ffmpeg_utils import (
     get_filmstrip_array,
 )
 from .file_utils import (
+    processed_video_suffix,
     get_file_size,
     create_process_directory,
     remove_process_directory,
 )
-
-# from api.dream_api import set_dream_processing, set_dream_processed, set_dream_failed
-from edream_sdk.client import create_edream_client
+from clients.edream import edream_client
 from edream_sdk.models.dream_types import SetDreamProcessedRequest, DreamFileType
 from edream_sdk.models.file_upload_types import UploadFileOptions
-
-load_dotenv()
-
-BACKEND_URL = os.getenv("BACKEND_URL")
-BACKEND_API_KEY = os.getenv("BACKEND_API_KEY")
-
-# edream sdk client
-edream_client = create_edream_client(backend_url=BACKEND_URL, api_key=BACKEND_API_KEY)
-
-processed_video_suffix = "processed"
 
 
 def process_video(dream_uuid, extension):

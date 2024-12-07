@@ -4,6 +4,7 @@ import logging
 from rq import Worker, Queue, Connection
 from rq.registry import FailedJobRegistry
 from config import Env
+from clients.edream import init_edream
 
 env = os.getenv("ENV")
 listen = ["high", "default", "low"]
@@ -23,6 +24,9 @@ else:
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[logging.StreamHandler()],
     )
+
+# init edream for worker
+init_edream()
 
 
 # requeue failed jobs function
