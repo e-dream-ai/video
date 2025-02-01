@@ -29,3 +29,7 @@ class VideoProcessSchema(Schema):
 
 class VideoMd5Schema(Schema):
     dream_uuid = fields.Str(required=True, validate=[validate.Length(equal=36)])
+
+
+class VideoFilmstripSchema(Schema):
+    dream_uuid = fields.Str(required=True, validate=[validate.Length(equal=36)])
