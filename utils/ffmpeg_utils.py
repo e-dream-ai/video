@@ -82,6 +82,7 @@ def generate_thumbnail(input_file: str, output_file: str):
 def get_frame_count(video_path: str):
     """
     Gets video total frames
+    returns total_frames (int)
     """
 
     # Validate if the video path exists
@@ -169,10 +170,8 @@ def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    # filter string for selecting frames to capture having 1-based frames
-    select_frames = "+".join(
-        [f"eq(n\\,{frame - 1})" for frame in filmstrip_frames_array]
-    )
+    # filter string for selecting frames to capture
+    select_frames = "+".join([f"eq(n\\,{frame})" for frame in filmstrip_frames_array])
     temp_output_pattern = os.path.join(output_dir, "temp_frame-%d.jpg")
 
     # ffmpeg command
@@ -184,17 +183,20 @@ def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array)
         f"select='{select_frames}',setpts=N/FRAME_RATE/TB",
         "-vsync",
         "vfr",
+        "-start_number",
+        "0",  # start output file numbering from 0
         temp_output_pattern,
     ]
 
     try:
         subprocess.call(cmd)
-        # rename the frames to match the frame numbers having 1-based
+        # ffmpeg outputs sequentially numbered files (e.g. temp_frame-0.jpg)
+        # the renaming process maps these to the actual frame numbers in filmstrip_frames_array (e.g. temp_frame-0.jpg -> frame-10.jpg)
         # ffmpeg output will be 1 to n, regardless of the frames specified
-        # so need to be renamed for file output with correct 1-based frame name
-        for i, frame_number in enumerate(filmstrip_frames_array, start=1):
+        for i, frame_number in enumerate(filmstrip_frames_array, start=0):
             temp_frame_file = os.path.join(output_dir, f"temp_frame-{i}.jpg")
             final_frame_file = os.path.join(output_dir, f"frame-{frame_number}.jpg")
+            # need to be renamed from 1-based ffmpeg frame output to zero-based frame handling
             if os.path.exists(temp_frame_file):
                 os.rename(temp_frame_file, final_frame_file)
 
@@ -204,12 +206,30 @@ def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array)
 
 
 def get_filmstrip_array(total_frames: int) -> list[int]:
+    """
+    Generates a list of frames to create a filmstrip from a video.
+    The frames are selected at regular intervals (every 100 frames for videos with fewer than 2400 frames, or every 300 frames for longer videos).
+    Last frame is included.
+    Important: frame numbering is zero-based, meaning the first frame is frame 0 and the last frame is frame `total_frames - 1`.
+    Example:
+        >>> get_filmstrip_array(1200)
+        [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1199]  # 1200 frames, last frame is 1199
+    """
+
+    # if the dream < 2400 frames total then, every filmstrip every 100 frames, otherwise 300
     if total_frames < 2400:
         frame_step = 100
     else:
         frame_step = 300
 
-    return list(range(1, total_frames + 1, frame_step))
+    frames = list(range(0, total_frames, frame_step))
+    # verifies if last frame is on list
+    # since frames are zero-based, last frame should be n - 1
+    last_frame = total_frames - 1
+    if frames[-1] != last_frame:
+        frames.append(last_frame)
+
+    return frames
 
 
 if __name__ == "__main__":
