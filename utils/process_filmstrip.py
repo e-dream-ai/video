@@ -7,7 +7,6 @@ from .file_utils import (
 )
 from .ffmpeg_utils import (
     get_frame_count,
-    get_video_fps,
     get_filmstrip_array,
 )
 from .process_video import process_filmstrip
@@ -61,7 +60,7 @@ def run_video_filmstrip(data):
         filmstrip = process_video_filmstrip(dream_uuid)
     except Exception as e:
         print(e)
-        # remove_process_directory(dream_uuid)
+        remove_process_directory(dream_uuid)
         edream_client.set_dream_failed(uuid=dream_uuid)
         return
 
