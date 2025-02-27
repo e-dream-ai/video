@@ -13,7 +13,6 @@ edream_client = None
 # edream sdk client
 def init_edream():
     global edream_client
-    print(BACKEND_URL)
     edream_client = create_edream_client(
         backend_url=BACKEND_URL, api_key=BACKEND_API_KEY
     )
