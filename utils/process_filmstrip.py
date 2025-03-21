@@ -11,7 +11,6 @@ from .ffmpeg_utils import (
 )
 from .process_video import process_filmstrip
 from clients.edream import edream_client
-from edream_sdk.models.dream_types import SetDreamProcessedRequest
 
 
 def process_video_filmstrip(dream_uuid):
@@ -21,7 +20,7 @@ def process_video_filmstrip(dream_uuid):
 
     dream = edream_client.get_dream(uuid=dream_uuid)
     # processed video url
-    dream_url = dream.video
+    dream_url = dream["video"]
     extension = get_file_extension(dream_url)
     video_path = (
         f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.{extension}"
@@ -44,7 +43,9 @@ def process_video_filmstrip(dream_uuid):
 
         return filmstrip_frames_array
     except subprocess.CalledProcessError as e:
-        print(f"Error: filmstrip generation returned a non-zero exit code ({e.returncode})")
+        print(
+            f"Error: filmstrip generation returned a non-zero exit code ({e.returncode})"
+        )
 
     return filmstrip_frames_array
 
@@ -67,7 +68,7 @@ def run_video_filmstrip(data):
     # set dream processed and save filmstrip
     edream_client.set_dream_processed(
         uuid=dream_uuid,
-        request_data=SetDreamProcessedRequest(filmstrip=filmstrip),
+        data={"filmstrip": filmstrip},
     )
 
     remove_process_directory(dream_uuid)

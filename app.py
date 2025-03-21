@@ -10,7 +10,11 @@ from utils.process_filmstrip import run_video_filmstrip
 from decorators.api_key_decorator import api_key_required
 from config import Env
 from marshmallow import ValidationError
-from schemas.process_video_schema import VideoProcessSchema, VideoMd5Schema, VideoFilmstripSchema
+from schemas.process_video_schema import (
+    VideoProcessSchema,
+    VideoMd5Schema,
+    VideoFilmstripSchema,
+)
 
 load_dotenv()
 

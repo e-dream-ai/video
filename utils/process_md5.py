@@ -6,7 +6,6 @@ from .file_utils import (
     remove_process_directory,
 )
 from clients.edream import edream_client
-from edream_sdk.models.dream_types import SetDreamProcessedRequest
 
 
 def process_video_md5(dream_uuid):
@@ -16,7 +15,7 @@ def process_video_md5(dream_uuid):
 
     dream = edream_client.get_dream(uuid=dream_uuid)
     # processed video url
-    dream_url = dream.video
+    dream_url = dream["video"]
     extension = get_file_extension(dream_url)
     video_path = (
         f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.{extension}"
@@ -66,11 +65,6 @@ def run_video_md5(data):
         edream_client.set_dream_failed(uuid=dream_uuid)
         return
 
-    edream_client.set_dream_processed(
-        uuid=dream_uuid,
-        request_data=SetDreamProcessedRequest(
-            md5=md5,
-        ),
-    )
+    edream_client.set_dream_processed(uuid=dream_uuid, data={"md5": md5})
 
     remove_process_directory(dream_uuid)

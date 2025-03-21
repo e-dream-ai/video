@@ -15,8 +15,7 @@ from .file_utils import (
     remove_process_directory,
 )
 from clients.edream import edream_client
-from edream_sdk.models.dream_types import SetDreamProcessedRequest, DreamFileType
-from edream_sdk.models.file_upload_types import UploadFileOptions
+from edream_sdk.types.dream_types import DreamFileType
 
 
 def process_video(dream_uuid, extension):
@@ -25,7 +24,7 @@ def process_video(dream_uuid, extension):
     """
 
     dream = edream_client.get_dream(uuid=dream_uuid)
-    dream_url = dream.original_video
+    dream_url = dream["original_video"]
 
     edream_client.download_file(
         url=dream_url,
@@ -48,14 +47,14 @@ def process_video(dream_uuid, extension):
     edream_client.upload_file(
         file_path=f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
         type=DreamFileType.DREAM,
-        options=UploadFileOptions(uuid=dream_uuid, processed=True),
+        options={"uuid": dream_uuid, "processed": True},
     )
 
     # upload thumbnail file
     edream_client.upload_file(
         file_path=f"./assets/{dream_uuid}/{dream_uuid}.png",
         type=DreamFileType.THUMBNAIL,
-        options=UploadFileOptions(uuid=dream_uuid),
+        options={"uuid": dream_uuid},
     )
 
     return md5
@@ -75,7 +74,7 @@ def process_filmstrip(dream_uuid, video_path, filmstrip_frames_array):
         edream_client.upload_file(
             file_path=f"./assets/{dream_uuid}/filmstrip/frame-{frame_number}.jpg",
             type=DreamFileType.FILMSTRIP,
-            options=UploadFileOptions(uuid=dream_uuid, frame_number=frame_number),
+            options={"uuid": dream_uuid, "frame_number": frame_number},
         )
 
 
@@ -109,14 +108,14 @@ def run_video_ingestion(data):
 
     edream_client.set_dream_processed(
         uuid=dream_uuid,
-        request_data=SetDreamProcessedRequest(
-            processedVideoSize=processed_video_size,
-            processedVideoFrames=processed_video_frames,
-            processedVideoFPS=process_video_fps,
-            activityLevel=30 / process_video_fps,
-            filmstrip=filmstrip_frames_array,
-            md5=md5,
-        ),
+        data={
+            "processedVideoSize": processed_video_size,
+            "processedVideoFrames": processed_video_frames,
+            "processedVideoFPS": process_video_fps,
+            "activityLevel": 30 / process_video_fps,
+            "filmstrip": filmstrip_frames_array,
+            "md5": md5,
+        },
     )
 
     remove_process_directory(dream_uuid)
