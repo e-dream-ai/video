@@ -25,11 +25,27 @@ def process_video(dream_uuid, extension):
 
     dream = edream_client.get_dream(uuid=dream_uuid)
     dream_url = dream["original_video"]
-
-    edream_client.download_file(
-        url=dream_url,
-        file_path=f"./assets/{dream_uuid}/{dream_uuid}.{extension}",
-    )
+    input_file_path = f"./assets/{dream_uuid}/{dream_uuid}.{extension}"
+    
+    print(f"Downloading video from: {dream_url}")
+    print(f"Download destination: {input_file_path}")
+    
+    try:
+        edream_client.download_file(
+            url=dream_url,
+            file_path=input_file_path,
+        )
+        print(f"Download completed")
+    except Exception as e:
+        print(f"Download failed: {e}")
+        raise e
+    
+    # Verify the file was actually downloaded
+    if not os.path.exists(input_file_path):
+        raise Exception(f"Downloaded file does not exist: {input_file_path}")
+    
+    file_size = os.path.getsize(input_file_path)
+    print(f"Downloaded file size: {file_size} bytes")
 
     # Runs video ingestion
     md5 = convert_video(
@@ -90,8 +106,10 @@ def run_video_ingestion(data):
 
     try:
         md5 = process_video(dream_uuid, extension)
+        if md5 is None:
+            raise Exception("Video processing failed - no MD5 returned")
     except Exception as e:
-        print(e)
+        print(f"Video processing failed: {e}")
         remove_process_directory(dream_uuid)
         edream_client.set_dream_failed(uuid=dream_uuid)
         return
