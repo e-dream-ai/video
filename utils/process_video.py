@@ -38,13 +38,31 @@ def process_video(dream_uuid, extension):
         print(f"Directory contents before download: {os.listdir(directory_path)}")
     
     try:
-        edream_client.download_file(
+        print(f"Calling edream_client.download_file with URL: {dream_url}")
+        print(f"Target file path: {input_file_path}")
+        
+        # Let's also test if we can access the URL
+        import requests
+        try:
+            response = requests.head(dream_url, timeout=10)
+            print(f"URL accessibility test - Status: {response.status_code}")
+            if hasattr(response, 'headers'):
+                content_length = response.headers.get('content-length', 'unknown')
+                print(f"Content-Length: {content_length}")
+        except Exception as url_test_error:
+            print(f"URL accessibility test failed: {url_test_error}")
+        
+        # Now try the actual download
+        result = edream_client.download_file(
             url=dream_url,
             file_path=input_file_path,
         )
+        print(f"Download method returned: {result}")
         print(f"Download completed")
     except Exception as e:
-        print(f"Download failed: {e}")
+        print(f"Download failed with exception: {type(e).__name__}: {e}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
         raise e
     
     # Check directory contents after download
