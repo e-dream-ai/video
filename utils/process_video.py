@@ -25,66 +25,36 @@ def process_video(dream_uuid, extension):
 
     dream = edream_client.get_dream(uuid=dream_uuid)
     dream_url = dream["original_video"]
+    
+    # Fix URL format - add https:// if missing
+    if not dream_url.startswith(('http://', 'https://')):
+        dream_url = f"https://{dream_url}"
+    
     input_file_path = f"./assets/{dream_uuid}/{dream_uuid}.{extension}"
     
     print(f"Downloading video from: {dream_url}")
-    print(f"Download destination: {input_file_path}")
-    
-    # Check if directory exists before download
-    directory_path = os.path.dirname(input_file_path)
-    print(f"Directory path: {directory_path}")
-    print(f"Directory exists: {os.path.exists(directory_path)}")
-    if os.path.exists(directory_path):
-        print(f"Directory contents before download: {os.listdir(directory_path)}")
     
     try:
-        print(f"Calling edream_client.download_file with URL: {dream_url}")
-        print(f"Target file path: {input_file_path}")
-        
-        # Let's also test if we can access the URL
-        import requests
-        try:
-            response = requests.head(dream_url, timeout=10)
-            print(f"URL accessibility test - Status: {response.status_code}")
-            if hasattr(response, 'headers'):
-                content_length = response.headers.get('content-length', 'unknown')
-                print(f"Content-Length: {content_length}")
-        except Exception as url_test_error:
-            print(f"URL accessibility test failed: {url_test_error}")
-        
-        # Now try the actual download
+        # Download the file
         result = edream_client.download_file(
             url=dream_url,
             file_path=input_file_path,
         )
-        print(f"Download method returned: {result}")
-        print(f"Download completed")
+        
+        # Check if download actually succeeded
+        if result is False:
+            raise Exception(f"Download failed - edream_client.download_file returned False")
+        
+        # Verify the file was actually downloaded
+        if not os.path.exists(input_file_path):
+            raise Exception(f"Downloaded file does not exist: {input_file_path}")
+        
+        file_size = os.path.getsize(input_file_path)
+        print(f"Download completed - {file_size} bytes")
+        
     except Exception as e:
-        print(f"Download failed with exception: {type(e).__name__}: {e}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
+        print(f"Download failed: {e}")
         raise e
-    
-    # Check directory contents after download
-    if os.path.exists(directory_path):
-        print(f"Directory contents after download: {os.listdir(directory_path)}")
-    else:
-        print(f"Directory does not exist after download: {directory_path}")
-    
-    # Verify the file was actually downloaded
-    if not os.path.exists(input_file_path):
-        # List the full assets directory to see what's there
-        assets_dir = "./assets"
-        if os.path.exists(assets_dir):
-            print(f"Assets directory contents: {os.listdir(assets_dir)}")
-            # List the specific UUID directory if it exists
-            uuid_dir = f"./assets/{dream_uuid}"
-            if os.path.exists(uuid_dir):
-                print(f"UUID directory contents: {os.listdir(uuid_dir)}")
-        raise Exception(f"Downloaded file does not exist: {input_file_path}")
-    
-    file_size = os.path.getsize(input_file_path)
-    print(f"Downloaded file size: {file_size} bytes")
 
     # Runs video ingestion
     md5 = convert_video(
