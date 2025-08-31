@@ -30,6 +30,13 @@ def process_video(dream_uuid, extension):
     print(f"Downloading video from: {dream_url}")
     print(f"Download destination: {input_file_path}")
     
+    # Check if directory exists before download
+    directory_path = os.path.dirname(input_file_path)
+    print(f"Directory path: {directory_path}")
+    print(f"Directory exists: {os.path.exists(directory_path)}")
+    if os.path.exists(directory_path):
+        print(f"Directory contents before download: {os.listdir(directory_path)}")
+    
     try:
         edream_client.download_file(
             url=dream_url,
@@ -40,8 +47,22 @@ def process_video(dream_uuid, extension):
         print(f"Download failed: {e}")
         raise e
     
+    # Check directory contents after download
+    if os.path.exists(directory_path):
+        print(f"Directory contents after download: {os.listdir(directory_path)}")
+    else:
+        print(f"Directory does not exist after download: {directory_path}")
+    
     # Verify the file was actually downloaded
     if not os.path.exists(input_file_path):
+        # List the full assets directory to see what's there
+        assets_dir = "./assets"
+        if os.path.exists(assets_dir):
+            print(f"Assets directory contents: {os.listdir(assets_dir)}")
+            # List the specific UUID directory if it exists
+            uuid_dir = f"./assets/{dream_uuid}"
+            if os.path.exists(uuid_dir):
+                print(f"UUID directory contents: {os.listdir(uuid_dir)}")
         raise Exception(f"Downloaded file does not exist: {input_file_path}")
     
     file_size = os.path.getsize(input_file_path)
