@@ -44,29 +44,57 @@ def convert_video(input_file: str, output_file: str) -> str | None:
     ]
 
     try:
+        print(f"Starting FFmpeg conversion: {input_file} -> {output_file}")
+        print(f"FFmpeg command: {' '.join(cmd)}")
+        
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
-        process.communicate()
+        stdout, stderr = process.communicate()
+        
+        # Always log FFmpeg output for debugging
+        if stdout:
+            print(f"FFmpeg stdout: {stdout}")
+        if stderr:
+            print(f"FFmpeg stderr: {stderr}")
+            
+        print(f"FFmpeg return code: {process.returncode}")
+        
+        # Check if FFmpeg succeeded
+        if process.returncode != 0:
+            print(f"FFmpeg conversion FAILED with return code {process.returncode}")
+            return None
+        
+        # Verify the output file actually exists
+        if not os.path.exists(output_file):
+            print(f"ERROR: Output file does not exist after conversion: {output_file}")
+            return None
+            
         print(f"Success: {input_file} converted to {output_file}")
 
+        # Calculate MD5 of the output file
         md5_cmd = ["md5sum", output_file]
         md5_process = subprocess.Popen(
             md5_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
 
         # Get output and errors
-        stdout, stderr = md5_process.communicate()
+        md5_stdout, md5_stderr = md5_process.communicate()
 
         if md5_process.returncode != 0:
-            raise Exception(f"Md5 error: {stderr}")
+            raise Exception(f"Md5 error: {md5_stderr}")
 
         # extract MD5 from output
-        md5 = stdout.split()[0]
+        md5 = md5_stdout.split()[0]
+        print(f"MD5 calculated successfully: {md5}")
 
         return md5
     except subprocess.CalledProcessError as e:
         print(f"Error: FFmpeg returned a non-zero exit code ({e.returncode})")
+        return None
+    except Exception as e:
+        print(f"Error during video conversion: {e}")
+        return None
 
 
 def generate_thumbnail(input_file: str, output_file: str):
