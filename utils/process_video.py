@@ -16,7 +16,6 @@ from .file_utils import (
 )
 from clients.edream import edream_client
 from edream_sdk.types.dream_types import DreamFileType
-from .download_fix import download_file_fixed
 
 
 def process_video(dream_uuid, extension):
@@ -36,16 +35,15 @@ def process_video(dream_uuid, extension):
     print(f"Downloading video from: {dream_url}")
     
     try:
-        # Download the file using our improved download function
-        # This handles Cloudflare R2 signed URLs better than the SDK version
-        result = download_file_fixed(
+        # Download the file
+        result = edream_client.download_file(
             url=dream_url,
             file_path=input_file_path,
         )
         
         # Check if download actually succeeded
         if result is False:
-            raise Exception(f"Download failed - download_file_fixed returned False")
+            raise Exception(f"Download failed - edream_client.download_file returned False")
         
         # Verify the file was actually downloaded
         if not os.path.exists(input_file_path):
