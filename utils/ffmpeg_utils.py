@@ -95,7 +95,7 @@ def generate_thumbnail(input_file: str, output_file: str):
         "ffmpeg",
         "-i", input_file,
         "-vframes", "1",
-        "-vf", "scale='min(iw,3840)':'min(ih,2160)':force_original_aspect_ratio=decrease,pad=3840:2160:(ow-iw)/2:(oh-ih)/2",
+        "-vf", "scale='min(iw,3840)':'min(ih,2160)':force_original_aspect_ratio=decrease",
         "-pix_fmt", "rgb24",
         "-compression_level", "6", 
         "-y", output_file
