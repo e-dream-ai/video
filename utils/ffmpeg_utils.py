@@ -88,13 +88,14 @@ def convert_video(input_file: str, output_file: str) -> str | None:
 def generate_thumbnail(input_file: str, output_file: str):
     """
     Generates an optimized thumbnail from a video file.
-    Resizes to 4K, reduces to 8bpp, and applies PNG compression.
+    Resizes to 4K maximum, but never upscales if input is smaller.
+    Reduces to 8bpp, and applies PNG compression.
     """
     cmd = [
         "ffmpeg",
         "-i", input_file,
         "-vframes", "1",
-        "-vf", "scale=3840:2160:force_original_aspect_ratio=decrease,pad=3840:2160:(ow-iw)/2:(oh-ih)/2",
+        "-vf", "scale='min(iw,3840)':'min(ih,2160)':force_original_aspect_ratio=decrease,pad=3840:2160:(ow-iw)/2:(oh-ih)/2",
         "-pix_fmt", "rgb24",
         "-compression_level", "6", 
         "-y", output_file
