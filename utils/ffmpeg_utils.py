@@ -86,7 +86,19 @@ def convert_video(input_file: str, output_file: str) -> str | None:
 
 
 def generate_thumbnail(input_file: str, output_file: str):
-    cmd = ["ffmpeg", "-i", input_file, "-vframes", "1", "-y", output_file]
+    """
+    Generates an optimized thumbnail from a video file.
+    Resizes to 4K, reduces to 8bpp, and applies PNG compression.
+    """
+    cmd = [
+        "ffmpeg",
+        "-i", input_file,
+        "-vframes", "1",
+        "-vf", "scale=3840:2160:force_original_aspect_ratio=decrease,pad=3840:2160:(ow-iw)/2:(oh-ih)/2",
+        "-pix_fmt", "rgb24",
+        "-compression_level", "6", 
+        "-y", output_file
+    ]
 
     try:
         subprocess.call(cmd)
@@ -180,7 +192,8 @@ def get_video_fps(video_path: str):
 
 def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array):
     """
-    Generates video filmstrip
+    Generates video filmstrip with optimized frame sizes.
+    Resizes frames to maximum 1920x1080 to reduce file sizes.
     """
 
     if not os.path.exists(output_dir):
@@ -190,15 +203,15 @@ def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array)
     select_frames = "+".join([f"eq(n\\,{frame})" for frame in filmstrip_frames_array])
     temp_output_pattern = os.path.join(output_dir, "temp_frame-%d.jpg")
 
-    # ffmpeg command
     cmd = [
         "ffmpeg",
         "-i",
         input_file,
         "-vf",
-        f"select='{select_frames}',setpts=N/FRAME_RATE/TB",
+        f"select='{select_frames}',setpts=N/FRAME_RATE/TB,scale=1920:1080:force_original_aspect_ratio=decrease",
         "-vsync",
         "vfr",
+        "-q:v", "3", 
         "-start_number",
         "0",  # start output file numbering from 0
         temp_output_pattern,
