@@ -7,6 +7,7 @@ from worker import conn
 from utils.process_video import run_video_ingestion
 from utils.process_md5 import run_video_md5
 from utils.process_filmstrip import run_video_filmstrip
+from utils.process_generated_video import run_process_generated_video
 from decorators.api_key_decorator import api_key_required
 from config import Env
 from marshmallow import ValidationError
@@ -14,6 +15,7 @@ from schemas.process_video_schema import (
     VideoProcessSchema,
     VideoMd5Schema,
     VideoFilmstripSchema,
+    ProcessGeneratedVideoSchema,
 )
 
 load_dotenv()
@@ -97,6 +99,20 @@ def process_video_filmstrip_handler():
         return jsonify(output)
     except ValidationError as err:
         return make_response(jsonify({"sucess": False, "message": err.messages}), 400)
+
+
+@app.route("/process-generated-video", methods=["POST"])
+@api_key_required
+def process_generated_video_handler():
+    data = request.json
+    schema = ProcessGeneratedVideoSchema()
+    try:
+        validated_data = schema.load(data)
+        new_job = q.enqueue(run_process_generated_video, args=(validated_data,))
+        output = get_job_status(new_job)
+        return jsonify(output)
+    except ValidationError as err:
+        return make_response(jsonify({"success": False, "message": err.messages}), 400)
 
 
 if __name__ == "__main__":
