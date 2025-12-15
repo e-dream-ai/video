@@ -5,6 +5,7 @@ from .ffmpeg_utils import (
     generate_thumbnail,
     get_frame_count,
     get_video_fps,
+    get_video_resolution,
     generate_filmstrip,
     get_filmstrip_array,
 )
@@ -129,6 +130,13 @@ def run_video_ingestion(data):
     processed_video_size = get_file_size(processed_video_path)
     processed_video_frames = get_frame_count(processed_video_path)
     process_video_fps = get_video_fps(processed_video_path)
+    video_resolution = get_video_resolution(processed_video_path)
+    processed_media_width = None
+    processed_media_height = None
+
+    if video_resolution is not None:
+        processed_media_width, processed_media_height = video_resolution
+
     filmstrip_frames_array = get_filmstrip_array(total_frames=processed_video_frames)
 
     process_filmstrip(dream_uuid, processed_video_path, filmstrip_frames_array)
@@ -139,6 +147,8 @@ def run_video_ingestion(data):
             "processedVideoSize": processed_video_size,
             "processedVideoFrames": processed_video_frames,
             "processedVideoFPS": process_video_fps,
+            "processedMediaWidth": processed_media_width,
+            "processedMediaHeight": processed_media_height,
             "activityLevel": 30 / process_video_fps,
             "filmstrip": filmstrip_frames_array,
             "md5": md5,

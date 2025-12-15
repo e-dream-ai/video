@@ -191,6 +191,48 @@ def get_video_fps(video_path: str):
         return None
 
 
+def get_video_resolution(video_path: str):
+    """
+    Gets video resolution (width and height in pixels)
+    """
+
+    if not os.path.exists(video_path):
+        print("Error: Video path does not exist.")
+        return None
+
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=width,height",
+        "-of",
+        "csv=s=x:p=0",
+        video_path,
+    ]
+
+    process = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+
+    output, _ = process.communicate()
+
+    if "x" in output:
+        try:
+            width_str, height_str = output.strip().split("x")
+            width = int(width_str)
+            height = int(height_str)
+            return width, height
+        except ValueError:
+            print("Error: Unable to parse video resolution.")
+            return None
+
+    print("Error: Unable to get resolution from video.")
+    return None
+
+
 def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array):
     """
     Generates video filmstrip with optimized frame sizes.
