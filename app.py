@@ -7,6 +7,7 @@ from worker import conn
 from utils.process_video import run_video_ingestion
 from utils.process_md5 import run_video_md5
 from utils.process_filmstrip import run_video_filmstrip
+from utils.process_image import run_image_ingestion
 from decorators.api_key_decorator import api_key_required
 from config import Env
 from marshmallow import ValidationError
@@ -15,6 +16,7 @@ from schemas.process_video_schema import (
     VideoMd5Schema,
     VideoFilmstripSchema,
 )
+from schemas.process_image_schema import ImageProcessSchema
 
 load_dotenv()
 
@@ -93,6 +95,20 @@ def process_video_filmstrip_handler():
     try:
         validated_data = schema.load(data)
         new_job = q.enqueue(run_video_filmstrip, args=(validated_data,))
+        output = get_job_status(new_job)
+        return jsonify(output)
+    except ValidationError as err:
+        return make_response(jsonify({"sucess": False, "message": err.messages}), 400)
+
+
+@app.route("/process-image", methods=["POST"])
+@api_key_required
+def process_image_handler():
+    data = request.json
+    schema = ImageProcessSchema()
+    try:
+        validated_data = schema.load(data)
+        new_job = q.enqueue(run_image_ingestion, args=(validated_data,))
         output = get_job_status(new_job)
         return jsonify(output)
     except ValidationError as err:
