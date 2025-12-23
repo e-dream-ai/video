@@ -127,10 +127,11 @@ def run_video_ingestion(data):
     processed_video_path = (
         f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4"
     )
+    original_video_path = f"./assets/{dream_uuid}/{dream_uuid}.{extension}"
     processed_video_size = get_file_size(processed_video_path)
     processed_video_frames = get_frame_count(processed_video_path)
     process_video_fps = get_video_fps(processed_video_path)
-    video_resolution = get_video_resolution(processed_video_path)
+    video_resolution = get_video_resolution(original_video_path)
     processed_media_width = None
     processed_media_height = None
 
