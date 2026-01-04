@@ -60,9 +60,10 @@ def run_video_md5(data):
     try:
         md5 = process_video_md5(dream_uuid)
     except Exception as e:
-        print(e)
+        error_message = str(e)
+        print(f"MD5 processing failed: {error_message}")
         remove_process_directory(dream_uuid)
-        edream_client.set_dream_failed(uuid=dream_uuid)
+        edream_client.set_dream_failed(uuid=dream_uuid, error=error_message)
         return
 
     edream_client.set_dream_processed(uuid=dream_uuid, data={"md5": md5})

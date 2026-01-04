@@ -119,9 +119,10 @@ def run_video_ingestion(data):
         if md5 is None:
             raise Exception("Video processing failed - no MD5 returned")
     except Exception as e:
-        print(f"Video processing failed: {e}")
+        error_message = str(e)
+        print(f"Video processing failed: {error_message}")
         remove_process_directory(dream_uuid)
-        edream_client.set_dream_failed(uuid=dream_uuid)
+        edream_client.set_dream_failed(uuid=dream_uuid, error=error_message)
         return
 
     processed_video_path = (
