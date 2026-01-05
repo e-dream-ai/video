@@ -16,7 +16,7 @@ from .file_utils import (
     remove_process_directory,
 )
 from clients.edream import edream_client
-from edream_sdk.types.dream_types import DreamFileType
+from edream_sdk.types.dream_types import DreamFileType, DreamMediaType
 
 
 def process_video(dream_uuid, extension):
@@ -119,9 +119,10 @@ def run_video_ingestion(data):
         if md5 is None:
             raise Exception("Video processing failed - no MD5 returned")
     except Exception as e:
-        print(f"Video processing failed: {e}")
+        error_message = str(e)
+        print(f"Video processing failed: {error_message}")
         remove_process_directory(dream_uuid)
-        edream_client.set_dream_failed(uuid=dream_uuid)
+        edream_client.set_dream_failed(uuid=dream_uuid, error=error_message)
         return
 
     processed_video_path = (
@@ -153,6 +154,7 @@ def run_video_ingestion(data):
             "activityLevel": 30 / process_video_fps,
             "filmstrip": filmstrip_frames_array,
             "md5": md5,
+            "mediaType": DreamMediaType.VIDEO,
         },
     )
 

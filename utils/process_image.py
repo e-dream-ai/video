@@ -10,7 +10,7 @@ from .file_utils import (
     remove_process_directory,
 )
 from clients.edream import edream_client
-from edream_sdk.types.dream_types import DreamFileType
+from edream_sdk.types.dream_types import DreamFileType, DreamMediaType
 
 load_dotenv()
 
@@ -160,9 +160,10 @@ def run_image_ingestion(data: dict):
         if metadata is None:
             raise Exception("Image processing failed - no metadata returned")
     except Exception as e:
-        print(f"Image processing failed: {e}")
+        error_message = str(e)
+        print(f"Image processing failed: {error_message}")
         remove_process_directory(dream_uuid)
-        edream_client.set_dream_failed(uuid=dream_uuid)
+        edream_client.set_dream_failed(uuid=dream_uuid, error=error_message)
         return
 
     edream_client.set_dream_processed(
@@ -172,6 +173,8 @@ def run_image_ingestion(data: dict):
             "processedMediaWidth": metadata["processedMediaWidth"],
             "processedMediaHeight": metadata["processedMediaHeight"],
             "md5": metadata["md5"],
+            "mediaType": DreamMediaType.IMAGE,
+            "filmstrip": None,
         },
     )
 

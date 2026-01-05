@@ -60,9 +60,10 @@ def run_video_filmstrip(data):
     try:
         filmstrip = process_video_filmstrip(dream_uuid)
     except Exception as e:
-        print(e)
+        error_message = str(e)
+        print(f"Filmstrip processing failed: {error_message}")
         remove_process_directory(dream_uuid)
-        edream_client.set_dream_failed(uuid=dream_uuid)
+        edream_client.set_dream_failed(uuid=dream_uuid, error=error_message)
         return
 
     # set dream processed and save filmstrip
