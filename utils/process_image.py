@@ -10,7 +10,7 @@ from .file_utils import (
     remove_process_directory,
 )
 from clients.edream import edream_client
-from edream_sdk.types.dream_types import DreamFileType
+from edream_sdk.types.dream_types import DreamFileType, DreamMediaType
 
 load_dotenv()
 
@@ -173,6 +173,8 @@ def run_image_ingestion(data: dict):
             "processedMediaWidth": metadata["processedMediaWidth"],
             "processedMediaHeight": metadata["processedMediaHeight"],
             "md5": metadata["md5"],
+            "mediaType": DreamMediaType.IMAGE,
+            "filmstrip": None,
         },
     )
 
