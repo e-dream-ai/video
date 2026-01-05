@@ -16,7 +16,7 @@ from .file_utils import (
     remove_process_directory,
 )
 from clients.edream import edream_client
-from edream_sdk.types.dream_types import DreamFileType
+from edream_sdk.types.dream_types import DreamFileType, DreamMediaType
 
 
 def process_video(dream_uuid, extension):
@@ -154,6 +154,7 @@ def run_video_ingestion(data):
             "activityLevel": 30 / process_video_fps,
             "filmstrip": filmstrip_frames_array,
             "md5": md5,
+            "mediaType": DreamMediaType.VIDEO,
         },
     )
 
