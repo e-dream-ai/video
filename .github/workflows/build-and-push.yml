@@ -14,7 +14,7 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: edreamai/video-ingest
+  IMAGE_NAME: edreamai/dream-ingestion
 
 jobs:
   build-and-push:
