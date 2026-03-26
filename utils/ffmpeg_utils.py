@@ -1,82 +1,110 @@
 import os
 import subprocess
 import sys
-import platform
+import hashlib
 
 
-def get_hardware_acceleration_codec():
-    os_name = platform.system()
+def _check_nvenc_available() -> bool:
+    """Check if NVIDIA NVENC hardware encoder is available."""
+    try:
+        result = subprocess.run(
+            ["ffmpeg", "-hide_banner", "-encoders"],
+            capture_output=True, text=True, timeout=10
+        )
+        return "hevc_nvenc" in result.stdout
+    except Exception:
+        return False
 
-    if os_name == "Windows":
-        return "libx264"  # software encoder for windows
-    elif os_name == "Darwin":
-        return "h264_videotoolbox"  # VideoToolbox for macOS
-    elif os_name == "Linux":
-        return "h264_vaapi"  # VA-API for Linux
-    else:
-        print(f"Unsupported operating system: {os_name}")
-        sys.exit(1)
+
+GPU_AVAILABLE = _check_nvenc_available()
+print(f"GPU NVENC available: {GPU_AVAILABLE}")
+
+
+def _calculate_md5(file_path: str) -> str:
+    """Calculate MD5 hash of a file using hashlib."""
+    hash_md5 = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 
 def convert_video(input_file: str, output_file: str) -> str | None:
     """
-    Executes video ingestion
+    Executes video ingestion with GPU acceleration (NVENC) if available,
+    falls back to CPU encoding otherwise.
     """
-    cmd = [
-        "ffmpeg",
-        "-i",
-        input_file,
-        "-an",
-        "-s",
-        "1920x1080",
-        "-c:v",
-        "libx265",
-        "-crf",
-        "24",
-        "-pix_fmt",
-        "yuv420p",
-        "-tag:v",
-        "hvc1",
-        "-fps_mode",
-        "passthrough",
-        "-y",
-        output_file,
-    ]
+    if GPU_AVAILABLE:
+        cmd = [
+            "ffmpeg",
+            "-hwaccel", "cuda",
+            "-i", input_file,
+            "-an",
+            "-vf", "scale=1920:1080",
+            "-c:v", "hevc_nvenc",
+            "-preset", "p5",
+            "-rc", "vbr",
+            "-cq", "24",
+            "-b:v", "0",
+            "-pix_fmt", "yuv420p",
+            "-tag:v", "hvc1",
+            "-fps_mode", "passthrough",
+            "-y", output_file,
+        ]
+        print(f"Starting GPU-accelerated video conversion: {input_file}")
+    else:
+        cmd = [
+            "ffmpeg",
+            "-i", input_file,
+            "-an",
+            "-s", "1920x1080",
+            "-c:v", "libx265",
+            "-crf", "24",
+            "-pix_fmt", "yuv420p",
+            "-tag:v", "hvc1",
+            "-fps_mode", "passthrough",
+            "-y", output_file,
+        ]
+        print(f"Starting CPU video conversion (no GPU detected): {input_file}")
 
     try:
-        print(f"Starting video conversion: {input_file}")
-        
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
         stdout, stderr = process.communicate()
-        
-        # Check if FFmpeg succeeded
+
+        if process.returncode != 0 and GPU_AVAILABLE:
+            print(f"GPU encoding failed, falling back to CPU: {stderr[:500] if stderr else 'unknown error'}")
+            cmd = [
+                "ffmpeg",
+                "-i", input_file,
+                "-an",
+                "-s", "1920x1080",
+                "-c:v", "libx265",
+                "-crf", "24",
+                "-pix_fmt", "yuv420p",
+                "-tag:v", "hvc1",
+                "-fps_mode", "passthrough",
+                "-y", output_file,
+            ]
+            process = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            stdout, stderr = process.communicate()
+
         if process.returncode != 0:
             print(f"FFmpeg conversion failed with return code {process.returncode}")
             if stderr:
                 print(f"FFmpeg error: {stderr}")
             return None
-        
-        # Verify the output file actually exists
+
         if not os.path.exists(output_file):
             print(f"Error: Output file does not exist after conversion")
             return None
-            
+
         print(f"Video conversion completed successfully")
 
-        # Calculate MD5 of the output file
-        md5_cmd = ["md5sum", output_file]
-        md5_process = subprocess.Popen(
-            md5_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
-
-        md5_stdout, md5_stderr = md5_process.communicate()
-
-        if md5_process.returncode != 0:
-            raise Exception(f"MD5 calculation failed: {md5_stderr}")
-
-        md5 = md5_stdout.split()[0]
+        md5 = _calculate_md5(output_file)
         print(f"MD5 calculated: {md5}")
 
         return md5
@@ -237,6 +265,7 @@ def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array)
     """
     Generates video filmstrip with optimized frame sizes.
     Resizes frames to maximum 1920x1080 to reduce file sizes.
+    Uses CUDA hardware acceleration for decoding when available.
     """
 
     if not os.path.exists(output_dir):
@@ -246,17 +275,16 @@ def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array)
     select_frames = "+".join([f"eq(n\\,{frame})" for frame in filmstrip_frames_array])
     temp_output_pattern = os.path.join(output_dir, "temp_frame-%d.jpg")
 
-    cmd = [
-        "ffmpeg",
-        "-i",
-        input_file,
+    cmd = ["ffmpeg"]
+    if GPU_AVAILABLE:
+        cmd += ["-hwaccel", "cuda"]
+    cmd += [
+        "-i", input_file,
         "-vf",
         f"select='{select_frames}',setpts=N/FRAME_RATE/TB,scale=1920:1080:force_original_aspect_ratio=decrease",
-        "-vsync",
-        "vfr",
-        "-q:v", "3", 
-        "-start_number",
-        "0",  # start output file numbering from 0
+        "-vsync", "vfr",
+        "-q:v", "3",
+        "-start_number", "0",
         temp_output_pattern,
     ]
 

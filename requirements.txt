@@ -1,22 +1,12 @@
-blinker==1.8.2
 certifi==2024.8.30
 charset-normalizer==3.3.2
-click==8.1.7
 dacite==1.8.1
-Flask==3.0.0
-gunicorn==21.2.0
 idna==3.10
-itsdangerous==2.2.0
-Jinja2==3.1.4
-MarkupSafe==2.1.5
-marshmallow==3.21.3
 packaging==24.1
 python-dateutil==2.8.2
 python-dotenv==1.0.0
-redis==5.0.1
 requests==2.31.0
-rq==1.15.1
 urllib3==2.0.7
-Werkzeug==3.0.4
 Pillow==10.0.0
--e git+ssh://git@github.com/e-dream-ai/python-api.git@main#egg=edream_sdk
+runpod==1.7.9
+git+https://github.com/e-dream-ai/python-api.git@main#egg=edream_sdk
