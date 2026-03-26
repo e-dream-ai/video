@@ -13,3 +13,6 @@ rq_worker.log
 
 # python-api
 python-api
+
+# output
+output/
