@@ -75,7 +75,7 @@ Edit `test_input.json` with a real `dream_uuid` to test.
 ### Build
 
 ```bash
-docker build --platform linux/amd64 -t video-ingest .
+docker build --platform linux/amd64 -t dream-ingestion .
 ```
 
 ### Run (CPU, no GPU)
@@ -84,7 +84,7 @@ docker build --platform linux/amd64 -t video-ingest .
 docker run --platform linux/amd64 \
   -e BACKEND_URL=<backend-url> \
   -e BACKEND_API_KEY=<backend-apikey> \
-  video-ingest \
+  dream-ingestion \
   python3 -u /app/handler.py --test_input /app/test_input.json
 ```
 
@@ -94,5 +94,5 @@ docker run --platform linux/amd64 \
 docker run --gpus all \
   -e BACKEND_URL=<backend-url> \
   -e BACKEND_API_KEY=<backend-apikey> \
-  video-ingest
+  dream-ingestion
 ```
