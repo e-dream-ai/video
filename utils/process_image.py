@@ -1,26 +1,21 @@
 import os
 import subprocess
-from typing import Tuple, Optional
-from dotenv import load_dotenv
+
 from PIL import Image
-from .file_utils import (
-    processed_video_suffix,
-    get_file_size,
-    create_process_directory,
-    remove_process_directory,
-)
+
 from clients.edream import edream_client
 from edream_sdk.types.dream_types import DreamFileType, DreamMediaType
 
-load_dotenv()
+from .file_utils import (
+    create_process_directory,
+    get_file_size,
+    processed_video_suffix,
+    remove_process_directory,
+)
 
 
 def convert_image_to_webp(input_file: str, output_file: str) -> str:
-    """
-    Converts image to WebP format using ImageMagick
-    Uses high quality (90) and high effort (method 6) settings
-    Preserves original resolution
-    """
+    """Convert an image to WebP with quality-oriented ImageMagick settings."""
     try:
         subprocess.run(
             [
@@ -37,19 +32,22 @@ def convert_image_to_webp(input_file: str, output_file: str) -> str:
         )
 
         if not os.path.exists(output_file):
-            raise Exception(f"ImageMagick conversion failed - output file not created: {output_file}")
+            raise Exception(
+                "ImageMagick conversion failed - output file not created: "
+                f"{output_file}"
+            )
 
         return output_file
     except subprocess.CalledProcessError as e:
         raise Exception(f"ImageMagick conversion failed: {e.stderr.decode()}")
     except FileNotFoundError:
-        raise Exception("ImageMagick 'convert' command not found. Please install ImageMagick.")
+        raise Exception(
+            "ImageMagick 'convert' command not found. Please install ImageMagick."
+        )
 
 
 def get_image_resolution(image_path: str) -> tuple[int, int] | None:
-    """
-    Gets image resolution (width, height) in pixels
-    """
+    """Return image resolution as `(width, height)` in pixels."""
     try:
         with Image.open(image_path) as img:
             return img.size
@@ -59,9 +57,7 @@ def get_image_resolution(image_path: str) -> tuple[int, int] | None:
 
 
 def calculate_md5(file_path: str) -> str:
-    """
-    Calculates MD5 hash of a file
-    """
+    """Calculate the MD5 hash for a file."""
     import hashlib
 
     hash_md5 = hashlib.md5()
@@ -72,10 +68,7 @@ def calculate_md5(file_path: str) -> str:
 
 
 def process_image(dream_uuid: str, extension: str) -> dict:
-    """
-    Executes image processing: downloads, converts to WebP, uploads
-    Returns metadata: width, height, size, md5
-    """
+    """Download, convert, upload, and summarize an image processing job."""
     dream = edream_client.get_dream(uuid=dream_uuid)
     dream_url = dream["original_video"]
 
@@ -106,9 +99,9 @@ def process_image(dream_uuid: str, extension: str) -> dict:
         file_size = os.path.getsize(input_file_path)
         print(f"Download completed - {file_size} bytes")
 
-    except Exception as e:
-        print(f"Download failed: {e}")
-        raise e
+    except Exception as exc:
+        print(f"Download failed: {exc}")
+        raise
 
     image_resolution = get_image_resolution(input_file_path)
     processed_media_width = None
@@ -144,11 +137,8 @@ def process_image(dream_uuid: str, extension: str) -> dict:
     }
 
 
-def run_image_ingestion(data: dict):
-    """
-    Runs image ingestion process
-    Sets dream status to PROCESSING, processes image, updates dream with processed data, sets status to PROCESSED
-    """
+def run_image_ingestion(data: dict[str, str]) -> None:
+    """Run the image ingestion workflow for a dream."""
     dream_uuid = data["dream_uuid"]
     extension = data["extension"]
 
@@ -159,23 +149,21 @@ def run_image_ingestion(data: dict):
         metadata = process_image(dream_uuid, extension)
         if metadata is None:
             raise Exception("Image processing failed - no metadata returned")
-    except Exception as e:
-        error_message = str(e)
+        edream_client.set_dream_processed(
+            uuid=dream_uuid,
+            data={
+                "processedVideoSize": metadata["processedVideoSize"],
+                "processedMediaWidth": metadata["processedMediaWidth"],
+                "processedMediaHeight": metadata["processedMediaHeight"],
+                "md5": metadata["md5"],
+                "mediaType": DreamMediaType.IMAGE,
+                "filmstrip": None,
+            },
+        )
+    except Exception as exc:
+        error_message = str(exc)
         print(f"Image processing failed: {error_message}")
-        remove_process_directory(dream_uuid)
         edream_client.set_dream_failed(uuid=dream_uuid, error=error_message)
-        return
-
-    edream_client.set_dream_processed(
-        uuid=dream_uuid,
-        data={
-            "processedVideoSize": metadata["processedVideoSize"],
-            "processedMediaWidth": metadata["processedMediaWidth"],
-            "processedMediaHeight": metadata["processedMediaHeight"],
-            "md5": metadata["md5"],
-            "mediaType": DreamMediaType.IMAGE,
-            "filmstrip": None,
-        },
-    )
-
-    remove_process_directory(dream_uuid)
+        raise
+    finally:
+        remove_process_directory(dream_uuid)
