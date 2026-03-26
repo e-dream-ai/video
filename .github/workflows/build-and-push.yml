@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
     inputs:
       docker_tag:
-        description: "Optional Docker tag suffix"
         required: false
         default: ""
         type: string
@@ -21,16 +20,6 @@ jobs:
     runs-on: container-builder
 
     steps:
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
