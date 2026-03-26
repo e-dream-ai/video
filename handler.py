@@ -4,13 +4,10 @@ from uuid import UUID
 
 import runpod
 
-from clients.edream import init_edream
 from utils.process_filmstrip import run_video_filmstrip
 from utils.process_image import run_image_ingestion
 from utils.process_md5 import run_video_md5
 from utils.process_video import run_video_ingestion
-
-init_edream()
 
 ALLOWED_VIDEO_TYPES = frozenset(
     {
