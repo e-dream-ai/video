@@ -37,10 +37,9 @@ def convert_video(input_file: str, output_file: str) -> str | None:
     if GPU_AVAILABLE:
         cmd = [
             "ffmpeg",
-            "-hwaccel", "cuda",
             "-i", input_file,
             "-an",
-            "-vf", "scale=-2:1080",
+            "-s", "1920x1080",
             "-c:v", "hevc_nvenc",
             "-preset", "p5",
             "-rc", "vbr",
