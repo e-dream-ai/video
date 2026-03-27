@@ -124,7 +124,8 @@ def generate_thumbnail(input_file: str, output_file: str):
         "-vframes", "1",
         "-vf", "scale='min(iw,3840)':'min(ih,2160)':force_original_aspect_ratio=decrease",
         "-pix_fmt", "rgb24",
-        "-compression_level", "6", 
+        "-compression_level", "6",
+        "-update", "1",
         "-y", output_file
     ]
 
