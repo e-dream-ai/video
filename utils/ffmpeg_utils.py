@@ -38,17 +38,17 @@ def convert_video(input_file: str, output_file: str) -> str | None:
         cmd = [
             "ffmpeg",
             "-hwaccel", "cuda",
+            "-hwaccel_output_format", "cuda",
             "-i", input_file,
             "-an",
-            "-vf", "scale=1920:1080",
+            "-vf", "scale_cuda=1920:1080:force_original_aspect_ratio=decrease,hwdownload,format=yuv420p",
             "-c:v", "hevc_nvenc",
             "-preset", "p5",
             "-rc", "vbr",
             "-cq", "24",
             "-b:v", "0",
-            "-pix_fmt", "yuv420p",
             "-tag:v", "hvc1",
-            "-fps_mode", "passthrough",
+            "-vsync", "passthrough",
             "-y", output_file,
         ]
         print(f"Starting GPU-accelerated video conversion: {input_file}")
@@ -62,7 +62,7 @@ def convert_video(input_file: str, output_file: str) -> str | None:
             "-crf", "24",
             "-pix_fmt", "yuv420p",
             "-tag:v", "hvc1",
-            "-fps_mode", "passthrough",
+            "-vsync", "passthrough",
             "-y", output_file,
         ]
         print(f"Starting CPU video conversion (no GPU detected): {input_file}")
@@ -84,7 +84,7 @@ def convert_video(input_file: str, output_file: str) -> str | None:
                 "-crf", "24",
                 "-pix_fmt", "yuv420p",
                 "-tag:v", "hvc1",
-                "-fps_mode", "passthrough",
+                "-vsync", "passthrough",
                 "-y", output_file,
             ]
             process = subprocess.Popen(
