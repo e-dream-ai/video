@@ -76,7 +76,7 @@ def convert_video(input_file: str, output_file: str) -> str | None:
         stdout, stderr = process.communicate()
 
         if process.returncode != 0 and GPU_AVAILABLE:
-            print(f"GPU encoding failed, falling back to CPU: {stderr[:500] if stderr else 'unknown error'}")
+            print(f"GPU encoding failed (exit code {process.returncode}), falling back to CPU. Error: {stderr[-1000:] if stderr else 'unknown error'}")
             cmd = [
                 "ffmpeg",
                 "-i", input_file,
