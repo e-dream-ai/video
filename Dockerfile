@@ -22,7 +22,7 @@ RUN git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git /tmp/nv-c
     cd /tmp/nv-codec-headers && \
     make install
 
-RUN git clone --depth 1 --branch n6.1.2 https://git.ffmpeg.org/ffmpeg.git /tmp/ffmpeg && \
+RUN git clone --depth 1 --branch n7.1.1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg && \
     cd /tmp/ffmpeg && \
     ./configure \
         --prefix=/usr/local \

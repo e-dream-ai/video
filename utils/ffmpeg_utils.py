@@ -42,7 +42,7 @@ def convert_video(input_file: str, output_file: str) -> str | None:
             "-extra_hw_frames", "4",
             "-i", input_file,
             "-an",
-            "-vf", "scale_cuda=1920:1080",
+            "-vf", "scale_npp=1920:1080:interp_algo=lanczos",
             "-c:v", "hevc_nvenc",
             "-preset", "p5",
             "-rc", "vbr",
