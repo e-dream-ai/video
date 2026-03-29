@@ -37,6 +37,7 @@ def convert_video(input_file: str, output_file: str) -> str | None:
     if GPU_AVAILABLE:
         cmd = [
             "ffmpeg",
+            "-hwaccel", "cuda",
             "-i", input_file,
             "-an",
             "-s", "1920x1080",
@@ -120,6 +121,7 @@ def generate_thumbnail(input_file: str, output_file: str):
     """
     cmd = [
         "ffmpeg",
+        "-hwaccel", "cuda",
         "-i", input_file,
         "-vframes", "1",
         "-vf", "scale='min(iw,3840)':'min(ih,2160)':force_original_aspect_ratio=decrease",
