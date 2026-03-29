@@ -284,7 +284,7 @@ def generate_filmstrip(input_file: str, output_dir: str, filmstrip_frames_array)
         "-i", input_file,
         "-vf",
         f"select='{select_frames}',setpts=N/FRAME_RATE/TB,scale=1920:1080:force_original_aspect_ratio=decrease",
-        "-vsync", "vfr",
+        "-fps_mode", "vfr",
         "-q:v", "3",
         "-start_number", "0",
         temp_output_pattern,
