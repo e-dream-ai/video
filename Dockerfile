@@ -22,7 +22,7 @@ RUN git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git /tmp/nv-c
     cd /tmp/nv-codec-headers && \
     make install
 
-RUN git clone --depth 1 --branch n7.1.1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg && \
+RUN git clone --depth 1 --branch n8.1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg && \
     cd /tmp/ffmpeg && \
     ./configure \
         --prefix=/usr/local \
@@ -42,6 +42,7 @@ RUN git clone --depth 1 --branch n7.1.1 https://github.com/FFmpeg/FFmpeg.git /tm
         --enable-libfreetype \
         --extra-cflags="-I/usr/local/cuda/include" \
         --extra-ldflags="-L/usr/local/cuda/lib64" \
+        --nvccflags="-gencode arch=compute_75,code=sm_75 -O2" \
     && make -j$(nproc) \
     && make install
 
