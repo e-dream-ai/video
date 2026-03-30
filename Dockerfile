@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04 AS ffmpeg-builder
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04 AS ffmpeg-builder
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -45,7 +45,7 @@ RUN git clone --depth 1 --branch n7.1.1 https://github.com/FFmpeg/FFmpeg.git /tm
     && make -j$(nproc) \
     && make install
 
-FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu22.04
 
 COPY --from=ffmpeg-builder /usr/local/bin/ffmpeg /usr/local/bin/ffmpeg
 COPY --from=ffmpeg-builder /usr/local/bin/ffprobe /usr/local/bin/ffprobe
