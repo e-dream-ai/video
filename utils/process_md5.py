@@ -1,20 +1,18 @@
-import subprocess
-from .file_utils import (
-    processed_video_suffix,
-    get_file_extension,
-    create_process_directory,
-    remove_process_directory,
-)
+import hashlib
+
 from clients.edream import edream_client
 
+from .file_utils import (
+    create_process_directory,
+    get_file_extension,
+    processed_video_suffix,
+    remove_process_directory,
+)
 
-def process_video_md5(dream_uuid):
-    """
-    Executes video md5 process
-    """
 
+def process_video_md5(dream_uuid: str) -> str:
+    """Download the processed video and return its MD5 hash."""
     dream = edream_client.get_dream(uuid=dream_uuid)
-    # processed video url
     dream_url = dream["video"]
     extension = get_file_extension(dream_url)
     video_path = (
@@ -26,46 +24,26 @@ def process_video_md5(dream_uuid):
         file_path=video_path,
     )
 
-    md5 = None
+    hash_md5 = hashlib.md5()
+    with open(video_path, "rb") as file_handle:
+        for chunk in iter(lambda: file_handle.read(8192), b""):
+            hash_md5.update(chunk)
 
-    try:
-        md5_cmd = ["md5sum", video_path]
-        md5_process = subprocess.Popen(
-            md5_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
-
-        # Get output and errors
-        stdout, stderr = md5_process.communicate()
-
-        if md5_process.returncode != 0:
-            raise Exception(f"Md5 error: {stderr}")
-
-        # extract MD5 from output
-        md5 = stdout.split()[0]
-
-        return md5
-    except subprocess.CalledProcessError as e:
-        print(f"Error: md5sum returned a non-zero exit code ({e.returncode})")
-
-    return md5
+    return hash_md5.hexdigest()
 
 
-def run_video_md5(data):
-    """
-    Runs video md5 process
-    """
+def run_video_md5(data: dict[str, str]) -> None:
+    """Run the processed-video MD5 workflow for a dream."""
     dream_uuid = data["dream_uuid"]
     create_process_directory(dream_uuid=dream_uuid)
 
     try:
         md5 = process_video_md5(dream_uuid)
-    except Exception as e:
-        error_message = str(e)
+        edream_client.set_dream_processed(uuid=dream_uuid, data={"md5": md5})
+    except Exception as exc:
+        error_message = str(exc)
         print(f"MD5 processing failed: {error_message}")
-        remove_process_directory(dream_uuid)
         edream_client.set_dream_failed(uuid=dream_uuid, error=error_message)
-        return
-
-    edream_client.set_dream_processed(uuid=dream_uuid, data={"md5": md5})
-
-    remove_process_directory(dream_uuid)
+        raise
+    finally:
+        remove_process_directory(dream_uuid)
