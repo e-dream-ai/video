@@ -1,4 +1,5 @@
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 from clients.edream import edream_client
 from edream_sdk.types.dream_types import DreamFileType, DreamMediaType
@@ -51,27 +52,35 @@ def process_video(dream_uuid: str, extension: str) -> str | None:
         print(f"Download failed: {exc}")
         raise
 
-    md5 = convert_video(
-        input_file=input_file_path,
-        output_file=f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
-    )
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        future_convert = executor.submit(
+            convert_video,
+            input_file=input_file_path,
+            output_file=f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
+        )
+        future_thumbnail = executor.submit(
+            generate_thumbnail,
+            input_file=input_file_path,
+            output_file=f"./assets/{dream_uuid}/{dream_uuid}.png",
+        )
+        md5 = future_convert.result()
+        future_thumbnail.result()
 
-    generate_thumbnail(
-        input_file=input_file_path,
-        output_file=f"./assets/{dream_uuid}/{dream_uuid}.png",
-    )
-
-    edream_client.upload_file(
-        file_path=f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
-        type=DreamFileType.DREAM,
-        options={"uuid": dream_uuid, "processed": True},
-    )
-
-    edream_client.upload_file(
-        file_path=f"./assets/{dream_uuid}/{dream_uuid}.png",
-        type=DreamFileType.THUMBNAIL,
-        options={"uuid": dream_uuid},
-    )
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        future_video_upload = executor.submit(
+            edream_client.upload_file,
+            file_path=f"./assets/{dream_uuid}/{dream_uuid}_{processed_video_suffix}.mp4",
+            type=DreamFileType.DREAM,
+            options={"uuid": dream_uuid, "processed": True},
+        )
+        future_thumbnail_upload = executor.submit(
+            edream_client.upload_file,
+            file_path=f"./assets/{dream_uuid}/{dream_uuid}.png",
+            type=DreamFileType.THUMBNAIL,
+            options={"uuid": dream_uuid},
+        )
+        future_video_upload.result()
+        future_thumbnail_upload.result()
 
     return md5
 
@@ -88,12 +97,18 @@ def process_filmstrip(
         output_dir=f"./assets/{dream_uuid}/filmstrip",
     )
 
-    for frame_number in filmstrip_frames_array:
-        edream_client.upload_file(
-            file_path=f"./assets/{dream_uuid}/filmstrip/frame-{frame_number}.jpg",
-            type=DreamFileType.FILMSTRIP,
-            options={"uuid": dream_uuid, "frame_number": frame_number},
-        )
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        futures = [
+            executor.submit(
+                edream_client.upload_file,
+                file_path=f"./assets/{dream_uuid}/filmstrip/frame-{frame_number}.jpg",
+                type=DreamFileType.FILMSTRIP,
+                options={"uuid": dream_uuid, "frame_number": frame_number},
+            )
+            for frame_number in filmstrip_frames_array
+        ]
+        for future in futures:
+            future.result()
 
 
 def run_video_ingestion(data: dict[str, str]) -> None:

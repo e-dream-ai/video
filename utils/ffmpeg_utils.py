@@ -44,7 +44,7 @@ def convert_video(input_file: str, output_file: str) -> str | None:
             "-c:v", "hevc_nvenc",
             "-preset", "p5",
             "-rc", "vbr",
-            "-cq", "24",
+            "-cq", "26",
             "-b:v", "0",
             "-pix_fmt", "yuv420p",
             "-tag:v", "hvc1",
