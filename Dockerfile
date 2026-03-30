@@ -29,7 +29,6 @@ RUN git clone --depth 1 --branch n8.1 https://github.com/FFmpeg/FFmpeg.git /tmp/
         --enable-gpl \
         --enable-nonfree \
         --enable-cuda-nvcc \
-        --enable-libnpp \
         --enable-cuvid \
         --enable-nvenc \
         --enable-nvdec \
