@@ -52,6 +52,9 @@ def convert_video(input_file: str, output_file: str) -> str | None:
             "-colorspace", "bt709",
             "-tag:v", "hvc1",
             "-video_track_timescale", "12288",
+            "-g", "60",
+            "-bf", "0",
+            "-refs", "1",
             "-fps_mode", "passthrough",
             "-y", output_file,
         ]
