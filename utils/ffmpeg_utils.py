@@ -29,49 +29,57 @@ def _calculate_md5(file_path: str) -> str:
     return hash_md5.hexdigest()
 
 
+# Output settings shared by the GPU and CPU encoders, so every dream has the same
+# structure whichever encoder made it (issue #61): bt709 color tags and timescale
+# (from the NVENC fixes for #57), a keyframe every 60 frames, no B-frames, and one
+# reference frame. Only the encoder and its rate control differ.
+_COMMON_OUTPUT_ARGS = [
+    "-an",
+    "-s", "1920x1080",
+    "-pix_fmt", "yuv420p",
+    "-color_primaries", "bt709",
+    "-color_trc", "bt709",
+    "-colorspace", "bt709",
+    "-tag:v", "hvc1",
+    "-video_track_timescale", "12288",
+    "-g", "60",
+    "-bf", "0",
+    "-refs", "1",
+    "-fps_mode", "passthrough",
+]
+
+_GPU_ENCODER_ARGS = ["-c:v", "hevc_nvenc", "-preset", "p5", "-rc", "vbr", "-cq", "26", "-b:v", "0"]
+# libx265 ignores -color_primaries and -color_trc when the input frames are untagged
+# (only -colorspace got through in testing with ffmpeg 7.1), so pass all three to x265
+# directly as well.
+_CPU_ENCODER_ARGS = [
+    "-c:v", "libx265", "-crf", "24",
+    "-x265-params", "colorprim=bt709:transfer=bt709:colormatrix=bt709",
+]
+
+
+def _convert_command(input_file: str, output_file: str, gpu: bool) -> list[str]:
+    """Builds the ffmpeg command for convert_video with the GPU (NVENC) or CPU (libx265) encoder."""
+    cmd = ["ffmpeg"]
+    if gpu:
+        cmd += ["-hwaccel", "cuda"]
+    cmd += ["-i", input_file]
+    cmd += _GPU_ENCODER_ARGS if gpu else _CPU_ENCODER_ARGS
+    cmd += _COMMON_OUTPUT_ARGS
+    cmd += ["-y", output_file]
+    return cmd
+
+
 def convert_video(input_file: str, output_file: str) -> str | None:
     """
     Executes video ingestion with GPU acceleration (NVENC) if available,
     falls back to CPU encoding otherwise.
     """
     if GPU_AVAILABLE:
-        cmd = [
-            "ffmpeg",
-            "-hwaccel", "cuda",
-            "-i", input_file,
-            "-an",
-            "-s", "1920x1080",
-            "-c:v", "hevc_nvenc",
-            "-preset", "p5",
-            "-rc", "vbr",
-            "-cq", "26",
-            "-b:v", "0",
-            "-pix_fmt", "yuv420p",
-            "-color_primaries", "bt709",
-            "-color_trc", "bt709",
-            "-colorspace", "bt709",
-            "-tag:v", "hvc1",
-            "-video_track_timescale", "12288",
-            "-g", "60",
-            "-bf", "0",
-            "-refs", "1",
-            "-fps_mode", "passthrough",
-            "-y", output_file,
-        ]
+        cmd = _convert_command(input_file, output_file, gpu=True)
         print(f"Starting GPU-accelerated video conversion: {input_file}")
     else:
-        cmd = [
-            "ffmpeg",
-            "-i", input_file,
-            "-an",
-            "-s", "1920x1080",
-            "-c:v", "libx265",
-            "-crf", "24",
-            "-pix_fmt", "yuv420p",
-            "-tag:v", "hvc1",
-            "-fps_mode", "passthrough",
-            "-y", output_file,
-        ]
+        cmd = _convert_command(input_file, output_file, gpu=False)
         print(f"Starting CPU video conversion (no GPU detected): {input_file}")
 
     try:
@@ -82,18 +90,7 @@ def convert_video(input_file: str, output_file: str) -> str | None:
 
         if process.returncode != 0 and GPU_AVAILABLE:
             print(f"GPU encoding failed (exit code {process.returncode}), falling back to CPU. Error: {stderr[-1000:] if stderr else 'unknown error'}")
-            cmd = [
-                "ffmpeg",
-                "-i", input_file,
-                "-an",
-                "-s", "1920x1080",
-                "-c:v", "libx265",
-                "-crf", "24",
-                "-pix_fmt", "yuv420p",
-                "-tag:v", "hvc1",
-                "-fps_mode", "passthrough",
-                "-y", output_file,
-            ]
+            cmd = _convert_command(input_file, output_file, gpu=False)
             process = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
